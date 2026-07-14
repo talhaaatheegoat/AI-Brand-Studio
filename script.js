@@ -54,7 +54,7 @@ generateBtn.addEventListener("click", async () => {
 
 
 
-        const response = await fetch("http://localhost:3000/generate", {
+        const response = await fetch("ai-brand-studio-production.up.railway.app", {
 
             method: "POST",
 
