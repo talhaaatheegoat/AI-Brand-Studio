@@ -103,12 +103,14 @@ generateBtn.addEventListener("click", async () => {
 
 
         if (!data.success) {
-
-            result.innerHTML = "<h2>Something went wrong.</h2>";
-
-            return;
-
-        }
+    result.innerHTML = `
+        <div class="result-card">
+            <h2>❌ Error</h2>
+            <p>${data.message}</p>
+        </div>
+    `;
+    return;
+}
 
 
 
@@ -116,90 +118,22 @@ generateBtn.addEventListener("click", async () => {
 
 
 
-        const logoPrompt = `
+  const logoPrompt = `
+Create a professional modern logo.
 
+IMPORTANT:
+The logo MUST display the EXACT brand name:
+"${brandName.value}"
 
+Do NOT change any letters.
+Do NOT misspell it.
+Do NOT invent another name.
+Copy it exactly.
 
-        
+If text cannot be rendered perfectly,
+DO NOT include any text at all.
 
-
-
-Professional logo icon.
-
-
-
-Brand: ${brandName.value}
-
-
-
-Industry: ${industry.value}
-
-
-
-Style: ${style.value}
-
-
-
-Primary Color: ${ai.primaryColor}
-
-
-
-Concept:
-
-${ai.logoConcept}
-
-
-
-Professional flat vector logo.
-
-
-
-Minimal.
-
-
-
-Modern.
-
-
-
-Award winning.
-
-
-
-Behance quality.
-
-
-
-Dribbble quality.
-
-
-
-Transparent background.
-
-
-
-Centered icon.
-
-
-
-No text.
-
-
-
-No letters.
-
-
-
-No typography.
-
-
-
-No mockups.
-
-
-
-Simple icon only.
-
+Only create the icon/logo.
 `;
 
 
