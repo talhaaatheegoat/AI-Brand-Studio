@@ -103,12 +103,15 @@ generateBtn.addEventListener("click", async () => {
 
 
         if (!data.success) {
-    result.innerHTML = `
-        <div class="result-card">
-            <h2>❌ Error</h2>
-            <p>${data.message}</p>
-        </div>
-    `;
+  result.innerHTML = `
+<div class="result-card">
+    <h2>❌ API Limit Reached</h2>
+    <p>
+        The free Gemini API daily request limit has been reached.
+        Please try again later or use another API key.
+    </p>
+</div>
+`;
     return;
 }
 
