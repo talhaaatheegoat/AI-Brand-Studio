@@ -240,11 +240,14 @@ ai.logo =
 
 
 
-<div style="text-align:center;">
+<div class="logo-container">
+
 
 
 
 <img
+
+
 
 id="generatedLogo"
 
@@ -257,6 +260,11 @@ max-width:260px;
 border-radius:15px;
 
 box-shadow:0 0 18px rgba(0,0,0,.2);
+
+<h2 class="brand-title">
+    ${brandName.value}
+</h2>
+
 
 ">
 
