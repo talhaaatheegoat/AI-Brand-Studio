@@ -146,18 +146,18 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ SIMPLE BUT BALANCED LOGO GENERATION
+// ✅ LOGO GENERATION WITH DELAY + RETRY
 // ============================================
 
-async function generateLogo(brandName, style, seed = null) {
+async function generateLogo(brandName, style, retryCount = 0) {
     try {
-        // ✅ SIMPLE PROMPT - BRAND + STYLE (NOT TOO COMPLEX)
+        // ✅ SIMPLE PROMPT
         const prompt = `${brandName} ${style} logo`;
-        const seedValue = seed || Math.floor(Math.random() * 10000);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seedValue}`;
+        const seed = Math.floor(Math.random() * 10000);
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
         
-        console.log(`🎨 Generating: ${prompt}`);
-        console.log(`🎲 Seed: ${seedValue}`);
+        console.log(`🎨 Attempt ${retryCount + 1}: ${prompt}`);
+        console.log(`🎲 Seed: ${seed}`);
         
         const response = await axios({
             method: 'get',
@@ -176,7 +176,19 @@ async function generateLogo(brandName, style, seed = null) {
             throw new Error('Image too small');
         }
     } catch (error) {
-        console.error('❌ Error:', error.message);
+        console.log(`❌ Attempt ${retryCount + 1} failed: ${error.message}`);
+        
+        // ✅ If rate limited, wait and retry
+        if (error.response?.status === 429 || error.message.includes('timeout')) {
+            if (retryCount < 5) {
+                const delay = (retryCount + 1) * 3000; // 3s, 6s, 9s, 12s, 15s
+                console.log(`⏳ Rate limited! Waiting ${delay/1000}s before retry...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+                return generateLogo(brandName, style, retryCount + 1);
+            } else {
+                console.log('❌ Max retries reached');
+            }
+        }
         
         // ✅ FALLBACK: Brand name only
         try {
@@ -194,7 +206,7 @@ async function generateLogo(brandName, style, seed = null) {
                 return fallbackResponse.data;
             }
         } catch (e) {
-            console.error('❌ Fallback failed:', e.message);
+            console.log('❌ Fallback failed');
         }
         
         return null;
@@ -225,7 +237,7 @@ app.post("/generate", async (req, res) => {
         } else {
             brandData.logo = null;
             brandData.logoUrl = null;
-            console.log('⚠️ Logo generation failed');
+            console.log('⚠️ Logo generation failed after retries');
         }
 
         res.json({ 
@@ -243,7 +255,7 @@ app.post("/generate", async (req, res) => {
 });
 
 // ============================================
-// ✅ REGENERATE LOGO - DIFFERENT SEED EACH TIME
+// ✅ REGENERATE LOGO
 // ============================================
 
 app.post("/regenerate-logo", async (req, res) => {
@@ -251,10 +263,7 @@ app.post("/regenerate-logo", async (req, res) => {
         const { brandName, style } = req.body;
 
         console.log(`🔄 Regenerating logo for: ${brandName}`);
-        
-        // ✅ DIFFERENT SEED = DIFFERENT LOGO
-        const newSeed = Math.floor(Math.random() * 10000);
-        const imageBuffer = await generateLogo(brandName, style, newSeed);
+        const imageBuffer = await generateLogo(brandName, style);
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
@@ -291,5 +300,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Logo generator ready!\n`);
+    console.log(`🎨 Logo generator with retry & delay!\n`);
 });
