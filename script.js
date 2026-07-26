@@ -11,13 +11,14 @@ let currentLogoPrompt = "";
 
 loading.style.display = "none";
 
+// ✅ YOUR RAILWAY URL - CHANGE THIS
 const API_URL = 'https://ai-brand-studio-production.up.railway.app';
 // const API_URL = 'http://localhost:3000';
 
 console.log(`📡 API URL: ${API_URL}`);
 
 // ============================================
-// 🐐 ULTIMATE GOATED LOGO GENERATOR
+// 🐐 ULTIMATE GOATED LOGO GENERATOR - 12 STYLES!
 // ============================================
 
 function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor) {
@@ -26,55 +27,118 @@ function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor
     canvas.height = 600;
     const ctx = canvas.getContext('2d');
 
-    // 🎨 5 DIFFERENT STYLES - Random each time
+    // 🎨 12 DIFFERENT STYLES - Random each time
     const styles = [
-        'premium',
-        'modern', 
-        'luxury',
-        'tech',
-        'creative'
+        'vintage', 'premium', 'modern', 'luxury', 'tech', 'creative',
+        'minimal', 'neon', 'gradient', 'geometric', 'elegant', 'bold'
     ];
     const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
 
-    // 🎨 Background
-    const grad = ctx.createLinearGradient(0, 0, 600, 600);
-    grad.addColorStop(0, primaryColor || '#667eea');
-    grad.addColorStop(0.4, secondaryColor || '#764ba2');
-    grad.addColorStop(0.7, accentColor || '#ff6b6b');
-    grad.addColorStop(1, primaryColor || '#667eea');
-    ctx.fillStyle = grad;
+    // 🎨 RANDOM GRADIENT BACKGROUND
+    const bgStyles = [
+        () => {
+            const g = ctx.createLinearGradient(0, 0, 600, 600);
+            g.addColorStop(0, primaryColor);
+            g.addColorStop(0.5, secondaryColor);
+            g.addColorStop(1, accentColor);
+            return g;
+        },
+        () => {
+            const g = ctx.createRadialGradient(300, 300, 50, 300, 300, 400);
+            g.addColorStop(0, primaryColor);
+            g.addColorStop(0.5, secondaryColor);
+            g.addColorStop(1, accentColor);
+            return g;
+        },
+        () => {
+            const g = ctx.createLinearGradient(0, 600, 600, 0);
+            g.addColorStop(0, primaryColor);
+            g.addColorStop(0.3, accentColor);
+            g.addColorStop(0.7, secondaryColor);
+            g.addColorStop(1, primaryColor);
+            return g;
+        },
+        () => {
+            const g = ctx.createRadialGradient(200, 200, 50, 400, 400, 400);
+            g.addColorStop(0, '#ffffff');
+            g.addColorStop(0.3, primaryColor);
+            g.addColorStop(0.7, secondaryColor);
+            g.addColorStop(1, accentColor);
+            return g;
+        },
+        () => {
+            const g = ctx.createLinearGradient(0, 0, 600, 0);
+            g.addColorStop(0, primaryColor);
+            g.addColorStop(0.3, accentColor);
+            g.addColorStop(0.6, secondaryColor);
+            g.addColorStop(1, primaryColor);
+            return g;
+        }
+    ];
+
+    const bgGrad = bgStyles[Math.floor(Math.random() * bgStyles.length)]();
+    ctx.fillStyle = bgGrad;
     ctx.roundRect(0, 0, 600, 600, 40);
     ctx.fill();
 
     // ✨ GLOW LAYER
     const glow = ctx.createRadialGradient(300, 300, 50, 300, 300, 350);
-    glow.addColorStop(0, 'rgba(255,255,255,0.2)');
-    glow.addColorStop(0.3, 'rgba(255,255,255,0.05)');
+    glow.addColorStop(0, 'rgba(255,255,255,0.15)');
+    glow.addColorStop(0.5, 'rgba(255,255,255,0.05)');
     glow.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = glow;
     ctx.roundRect(0, 0, 600, 600, 40);
     ctx.fill();
 
-    // 🎨 DESIGN ELEMENTS (Style-specific)
-    if (selectedStyle === 'premium') {
-        drawPremiumStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
-    } else if (selectedStyle === 'modern') {
-        drawModernStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
-    } else if (selectedStyle === 'luxury') {
-        drawLuxuryStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
-    } else if (selectedStyle === 'tech') {
-        drawTechStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
-    } else {
-        drawCreativeStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    // 🎨 DRAW STYLE
+    switch(selectedStyle) {
+        case 'vintage':
+            drawVintageStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'premium':
+            drawPremiumStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'modern':
+            drawModernStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'luxury':
+            drawLuxuryStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'tech':
+            drawTechStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'creative':
+            drawCreativeStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'minimal':
+            drawMinimalStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'neon':
+            drawNeonStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'gradient':
+            drawGradientStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'geometric':
+            drawGeometricStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'elegant':
+            drawElegantStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        case 'bold':
+            drawBoldStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+            break;
+        default:
+            drawModernStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
     }
 
-    // 🏷️ BRAND NAME (Bottom)
+    // 🏷️ BRAND NAME
     ctx.shadowColor = 'rgba(0,0,0,0.2)';
     ctx.shadowBlur = 15;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.font = 'bold 42px Arial, sans-serif';
+    ctx.font = 'bold 38px Arial, sans-serif';
     ctx.fillText(brandName, 300, 540);
 
     // 📏 DECORATIVE LINE
@@ -92,13 +156,13 @@ function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor
     ctx.stroke();
 
     // ✨ CORNER ACCENTS
-    drawCornerAccent(ctx, 30, 30, 'top-left', primaryColor);
-    drawCornerAccent(ctx, 570, 30, 'top-right', primaryColor);
-    drawCornerAccent(ctx, 30, 570, 'bottom-left', primaryColor);
-    drawCornerAccent(ctx, 570, 570, 'bottom-right', primaryColor);
+    drawCornerAccent(ctx, 30, 30, 'top-left');
+    drawCornerAccent(ctx, 570, 30, 'top-right');
+    drawCornerAccent(ctx, 30, 570, 'bottom-left');
+    drawCornerAccent(ctx, 570, 570, 'bottom-right');
 
-    // 🏷️ STYLE TAG (Bottom right - small)
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    // 🏷️ STYLE TAG
+    ctx.fillStyle = 'rgba(255,255,255,0.12)';
     ctx.font = '10px Arial';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'bottom';
@@ -107,20 +171,49 @@ function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor
     return canvas.toDataURL('image/png');
 }
 
+// 🎨 VINTAGE STYLE
+function drawVintageStyle(ctx, name, p, s, a) {
+    ctx.save();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 3;
+    ctx.roundRect(60, 70, 480, 400, 15);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.roundRect(70, 80, 460, 380, 10);
+    ctx.stroke();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 25;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const grad = ctx.createLinearGradient(200, 150, 400, 350);
+    grad.addColorStop(0, '#F5E6D3');
+    grad.addColorStop(1, '#D4C4A8');
+    ctx.fillStyle = grad;
+    ctx.font = 'bold 150px "Georgia", serif';
+    ctx.fillText(letter, 300, 270);
+    [[80, 90], [520, 90], [80, 440], [520, 440]].forEach(([x, y]) => {
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fill();
+    });
+    ctx.restore();
+}
+
 // 🎨 PREMIUM STYLE
 function drawPremiumStyle(ctx, name, p, s, a) {
-    // Big letter with gold effect
+    ctx.save();
     const letter = name.charAt(0).toUpperCase();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    // Shadow
     ctx.shadowColor = 'rgba(0,0,0,0.4)';
     ctx.shadowBlur = 40;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 8;
-    
-    // Gold gradient
     const goldGrad = ctx.createLinearGradient(200, 150, 400, 350);
     goldGrad.addColorStop(0, '#FFD700');
     goldGrad.addColorStop(0.3, '#FFF8DC');
@@ -130,43 +223,36 @@ function drawPremiumStyle(ctx, name, p, s, a) {
     ctx.fillStyle = goldGrad;
     ctx.font = 'bold 180px Arial, sans-serif';
     ctx.fillText(letter, 300, 280);
-
-    // Inner glow on letter
     ctx.shadowBlur = 20;
     ctx.shadowColor = 'rgba(255,215,0,0.3)';
     ctx.fillStyle = 'rgba(255,255,255,0.1)';
     ctx.fillText(letter, 300, 280);
+    ctx.restore();
 }
 
 // 🎨 MODERN STYLE
 function drawModernStyle(ctx, name, p, s, a) {
-    // Geometric shapes
+    ctx.save();
     ctx.shadowBlur = 0;
-    
-    // Diamond
     ctx.save();
     ctx.translate(300, 260);
     ctx.rotate(45 * Math.PI / 180);
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillStyle = 'rgba(255,255,255,0.08)';
     ctx.roundRect(-80, -80, 160, 160, 20);
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 3;
     ctx.roundRect(-80, -80, 160, 160, 20);
     ctx.stroke();
     ctx.restore();
-
-    // Letter inside
+    const letter = name.charAt(0).toUpperCase();
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 30;
-    const letter = name.charAt(0).toUpperCase();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 140px Arial, sans-serif';
     ctx.fillText(letter, 300, 270);
-
-    // Small circles around
     for (let i = 0; i < 8; i++) {
         const angle = (i / 8) * Math.PI * 2;
         const x = 300 + Math.cos(angle) * 170;
@@ -174,30 +260,27 @@ function drawModernStyle(ctx, name, p, s, a) {
         ctx.shadowBlur = 0;
         ctx.beginPath();
         ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.fill();
     }
+    ctx.restore();
 }
 
 // 🎨 LUXURY STYLE
 function drawLuxuryStyle(ctx, name, p, s, a) {
-    // Elegant frame
+    ctx.save();
     ctx.shadowBlur = 0;
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 2;
     ctx.roundRect(50, 70, 500, 400, 30);
     ctx.stroke();
-
-    // Double line
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
     ctx.lineWidth = 1;
     ctx.roundRect(60, 80, 480, 380, 25);
     ctx.stroke();
-
-    // Letter with serif style
+    const letter = name.charAt(0).toUpperCase();
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 25;
-    const letter = name.charAt(0).toUpperCase();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const grad = ctx.createLinearGradient(200, 150, 400, 350);
@@ -206,28 +289,24 @@ function drawLuxuryStyle(ctx, name, p, s, a) {
     ctx.fillStyle = grad;
     ctx.font = 'bold 160px "Times New Roman", serif';
     ctx.fillText(letter, 300, 270);
-
-    // Small diamonds at corners
-    const diamonds = [[70, 90], [530, 90], [70, 450], [530, 450]];
-    diamonds.forEach(([x, y]) => {
+    [[70, 90], [530, 90], [70, 450], [530, 450]].forEach(([x, y]) => {
         ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillStyle = 'rgba(255,255,255,0.1)';
         ctx.save();
         ctx.translate(x, y);
         ctx.rotate(45 * Math.PI / 180);
         ctx.fillRect(-10, -10, 20, 20);
         ctx.restore();
     });
+    ctx.restore();
 }
 
 // 🎨 TECH STYLE
 function drawTechStyle(ctx, name, p, s, a) {
-    // Circuit-like patterns
+    ctx.save();
     ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    
-    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
     for (let i = 0; i < 600; i += 40) {
         ctx.beginPath();
         ctx.moveTo(i, 0);
@@ -238,10 +317,9 @@ function drawTechStyle(ctx, name, p, s, a) {
         ctx.lineTo(600, i);
         ctx.stroke();
     }
-
-    // Hexagon
     ctx.save();
     ctx.translate(300, 270);
+    ctx.beginPath();
     for (let i = 0; i < 6; i++) {
         const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
         const x = Math.cos(angle) * 120;
@@ -252,59 +330,50 @@ function drawTechStyle(ctx, name, p, s, a) {
     ctx.closePath();
     ctx.fillStyle = 'rgba(255,255,255,0.05)';
     ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
     ctx.lineWidth = 3;
     ctx.stroke();
     ctx.restore();
-
-    // Letter with tech feel
+    const letter = name.charAt(0).toUpperCase();
     ctx.shadowColor = 'rgba(0,255,255,0.2)';
     ctx.shadowBlur = 40;
-    const letter = name.charAt(0).toUpperCase();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 140px "Courier New", monospace';
     ctx.fillText(letter, 300, 270);
+    ctx.restore();
 }
 
 // 🎨 CREATIVE STYLE
 function drawCreativeStyle(ctx, name, p, s, a) {
-    // Splash/watercolor effect
+    ctx.save();
     for (let i = 0; i < 30; i++) {
         const x = 100 + Math.random() * 400;
         const y = 80 + Math.random() * 400;
         const radius = 10 + Math.random() * 40;
-        const alpha = 0.05 + Math.random() * 0.1;
+        const alpha = 0.05 + Math.random() * 0.08;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(255,255,255,${alpha})`;
         ctx.shadowBlur = 0;
         ctx.fill();
     }
-
-    // Letter with creative styling
+    const letter = name.charAt(0).toUpperCase();
     ctx.shadowColor = 'rgba(0,0,0,0.3)';
     ctx.shadowBlur = 30;
-    const letter = name.charAt(0).toUpperCase();
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    
-    // Outline
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 8;
     ctx.font = 'bold 160px Arial, sans-serif';
     ctx.strokeText(letter, 300, 270);
-    
-    // Fill
     const grad = ctx.createRadialGradient(250, 200, 20, 300, 270, 150);
     grad.addColorStop(0, '#ffffff');
     grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
     grad.addColorStop(1, 'rgba(255,255,255,0.6)');
     ctx.fillStyle = grad;
     ctx.fillText(letter, 300, 270);
-
-    // Creative dots
     for (let i = 0; i < 12; i++) {
         const angle = (i / 12) * Math.PI * 2;
         const x = 300 + Math.cos(angle) * 190;
@@ -312,38 +381,150 @@ function drawCreativeStyle(ctx, name, p, s, a) {
         ctx.shadowBlur = 0;
         ctx.beginPath();
         ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
         ctx.fill();
     }
+    ctx.restore();
 }
 
-// ✨ SPARKLE
-function drawSparkle(ctx, x, y) {
+// 🎨 MINIMAL STYLE
+function drawMinimalStyle(ctx, name, p, s, a) {
     ctx.save();
-    ctx.translate(x, y);
-    const size = 10;
-    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    const letter = name.charAt(0).toUpperCase();
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 20;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 120px Arial, sans-serif';
+    ctx.fillText(letter, 300, 260);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    for (let i = 0; i < 4; i++) {
-        const angle = (i / 4) * Math.PI * 2;
-        const x1 = Math.cos(angle) * size;
-        const y1 = Math.sin(angle) * size;
-        if (i === 0) ctx.moveTo(x1, y1);
-        else ctx.lineTo(x1, y1);
-        const x2 = Math.cos(angle + Math.PI / 8) * size * 0.3;
-        const y2 = Math.sin(angle + Math.PI / 8) * size * 0.3;
-        ctx.lineTo(x2, y2);
-    }
-    ctx.closePath();
+    ctx.arc(300, 260, 140, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+}
+
+// 🎨 NEON STYLE
+function drawNeonStyle(ctx, name, p, s, a) {
+    ctx.save();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const neonColors = ['#00ff88', '#ff00ff', '#00ccff', '#ff6600'];
+    const neonColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+    ctx.shadowColor = neonColor;
+    ctx.shadowBlur = 60;
+    ctx.fillStyle = neonColor;
+    ctx.font = 'bold 160px Arial, sans-serif';
+    ctx.fillText(letter, 300, 270);
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(letter, 300, 270);
+    ctx.restore();
+}
+
+// 🎨 GRADIENT STYLE
+function drawGradientStyle(ctx, name, p, s, a) {
+    ctx.save();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const grad = ctx.createLinearGradient(100, 100, 500, 500);
+    grad.addColorStop(0, '#FF6B6B');
+    grad.addColorStop(0.3, '#FECA57');
+    grad.addColorStop(0.6, '#48DBFB');
+    grad.addColorStop(0.8, '#FF9FF3');
+    grad.addColorStop(1, '#FF6B6B');
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 30;
+    ctx.fillStyle = grad;
+    ctx.font = 'bold 160px Arial, sans-serif';
+    ctx.fillText(letter, 300, 270);
+    ctx.restore();
+}
+
+// 🎨 GEOMETRIC STYLE
+function drawGeometricStyle(ctx, name, p, s, a) {
+    ctx.save();
+    ctx.shadowBlur = 0;
+    const shapes = [
+        () => { ctx.roundRect(100, 100, 400, 340, 20); },
+        () => { ctx.beginPath(); ctx.arc(300, 270, 180, 0, Math.PI * 2); },
+        () => { ctx.save(); ctx.translate(300, 270); ctx.rotate(45 * Math.PI / 180); ctx.roundRect(-130, -130, 260, 260, 15); ctx.restore(); }
+    ];
+    const shape = shapes[Math.floor(Math.random() * shapes.length)];
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    shape();
     ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 3;
+    shape();
+    ctx.stroke();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 25;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 140px Arial, sans-serif';
+    ctx.fillText(letter, 300, 270);
+    ctx.restore();
+}
+
+// 🎨 ELEGANT STYLE
+function drawElegantStyle(ctx, name, p, s, a) {
+    ctx.save();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.2)';
+    ctx.shadowBlur = 20;
+    const grad = ctx.createRadialGradient(250, 200, 30, 300, 270, 150);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1, 'rgba(255,255,255,0.5)');
+    ctx.fillStyle = grad;
+    ctx.font = 'italic bold 160px "Georgia", serif';
+    ctx.fillText(letter, 300, 270);
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(300, 270, 130, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+}
+
+// 🎨 BOLD STYLE
+function drawBoldStyle(ctx, name, p, s, a) {
+    ctx.save();
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 200px Arial, sans-serif';
+    ctx.fillText(letter, 300, 280);
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 4;
+    ctx.strokeText(letter, 300, 280);
     ctx.restore();
 }
 
 // 🏛️ CORNER ACCENT
-function drawCornerAccent(ctx, x, y, position, color) {
+function drawCornerAccent(ctx, x, y, position) {
     ctx.save();
     ctx.translate(x, y);
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
     ctx.lineWidth = 3;
     const size = 25;
     ctx.shadowBlur = 0;
