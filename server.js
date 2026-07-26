@@ -9,10 +9,12 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static("."));
 
+// ✅ STORE CURRENT BRAND DATA FOR REIMAGINE
+let currentBrandData = null;
+
 // ✅ CHECK API KEY
 let model = null;
 let useAI = false;
-let currentBrandData = null;
 
 if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
     try {
@@ -219,7 +221,7 @@ app.post("/generate", async (req, res) => {
         console.log(`\n🚀 Generating brand: ${brandName}`);
 
         const brandData = await generateWithAI(brandName, industry, style, color);
-        currentBrandData = brandData; // Store for reimagine
+        currentBrandData = brandData; // ✅ STORE FOR REIMAGINE
         
         console.log('🎨 Generating logo with colors...');
         console.log(`🎨 Primary: ${brandData.primaryColor}`);
@@ -271,15 +273,23 @@ app.post("/regenerate-logo", async (req, res) => {
 
         console.log(`🔄 Generating DIFFERENT logo for: ${brandName}`);
 
+        // ✅ GET COLORS FROM STORED BRAND DATA
         const primaryColor = currentBrandData?.primaryColor || '#667eea';
         const secondaryColor = currentBrandData?.secondaryColor || '#764ba2';
         const accentColor = currentBrandData?.accentColor || '#ff6b6b';
 
+        console.log(`🎨 Using colors: ${primaryColor}, ${secondaryColor}, ${accentColor}`);
+
+        // ✅ 8 different prompt styles WITH COLORS
         const prompts = [
             `${brandName} ${logoConcept || industry} logo, ${style}, colors: ${primaryColor}, ${secondaryColor}, ${accentColor}, minimal, vector, flat`,
             `${brandName} ${industry} logo, ${style}, brand colors: ${primaryColor}, ${secondaryColor}, creative, modern`,
             `${brandName} logo, ${style}, color palette: ${primaryColor}, ${secondaryColor}, ${accentColor}, professional, elegant`,
-            `${brandName} ${logoConcept || industry} icon, ${style}, using colors ${primaryColor}, ${secondaryColor}, bold, distinctive`
+            `${brandName} ${logoConcept || industry} icon, ${style}, using colors ${primaryColor}, ${secondaryColor}, bold, distinctive`,
+            `${brandName} brand mark, ${style}, colors: ${primaryColor}, ${accentColor}, minimalist, high quality`,
+            `${brandName} ${industry} symbol, ${style}, color scheme: ${primaryColor}, ${secondaryColor}, flat, vector, premium`,
+            `${brandName} logo design, ${style}, with colors ${primaryColor}, ${secondaryColor}, ${accentColor}, modern, sophisticated`,
+            `${brandName} ${logoConcept || industry} mark, ${style}, colored logo using ${primaryColor}, ${secondaryColor}, elegant, memorable`
         ];
 
         const randomIndex = Math.floor(Math.random() * prompts.length);
@@ -289,7 +299,6 @@ app.post("/regenerate-logo", async (req, res) => {
         const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
         
         console.log(`🎨 Prompt ${randomIndex + 1}/${prompts.length}`);
-        console.log(`🎨 Colors: ${primaryColor}, ${secondaryColor}, ${accentColor}`);
         console.log(`🎲 Seed: ${seed}`);
 
         const response = await axios({
@@ -313,6 +322,7 @@ app.post("/regenerate-logo", async (req, res) => {
     } catch (error) {
         console.error('❌ Error:', error.message);
         
+        // ✅ FALLBACK with colors
         try {
             const primaryColor = currentBrandData?.primaryColor || '#667eea';
             const secondaryColor = currentBrandData?.secondaryColor || '#764ba2';
