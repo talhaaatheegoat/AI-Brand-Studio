@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const axios = require("axios");
 
 const app = express();
 app.use(cors());
@@ -10,7 +9,6 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.static("."));
 
 let currentBrandData = null;
-
 let model = null;
 let useAI = false;
 
@@ -26,10 +24,6 @@ if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_AP
 } else {
     console.log('⚠️ No Gemini API key, using smart fallback');
 }
-
-// ============================================
-// ✅ SMART FALLBACK BRAND GENERATOR
-// ============================================
 
 function generateSmartBrand(brandName, industry, style, color) {
     const colors = {
@@ -150,72 +144,17 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ HUGGING FACE IMAGE GENERATION (FREE)
+// ✅ DIRECT URL - NO BACKEND IMAGE PROCESSING!
 // ============================================
 
-async function generateLogoWithHuggingFace(brandName, style) {
-    try {
-        // ✅ Use a FREE model on Hugging Face
-        const prompt = `A professional ${style} logo for a company named "${brandName}", minimal, clean, vector style, white background`;
-        
-        console.log(`🎨 Generating with Hugging Face...`);
-        console.log(`📝 Prompt: ${prompt}`);
-        
-        // Hugging Face API - No API key required for some models!
-        const response = await axios({
-            method: 'post',
-            url: 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            data: {
-                inputs: prompt,
-                parameters: {
-                    negative_prompt: 'text, watermark, ugly, distorted',
-                }
-            },
-            responseType: 'arraybuffer',
-            timeout: 60000
-        });
-
-        if (response.data && response.data.length > 1000) {
-            console.log(`✅ Image generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
-            return response.data;
-        } else {
-            throw new Error('Image too small');
-        }
-    } catch (error) {
-        console.log(`❌ Hugging Face error: ${error.message}`);
-        
-        // ✅ FALLBACK: Try a different model
-        try {
-            console.log('🔄 Trying fallback model...');
-            const fallbackResponse = await axios({
-                method: 'post',
-                url: 'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                data: {
-                    inputs: `${brandName} logo, ${style}, minimal, clean`,
-                    parameters: {
-                        negative_prompt: 'text, watermark, ugly',
-                    }
-                },
-                responseType: 'arraybuffer',
-                timeout: 60000
-            });
-
-            if (fallbackResponse.data && fallbackResponse.data.length > 1000) {
-                console.log('✅ Fallback model worked!');
-                return fallbackResponse.data;
-            }
-        } catch (e) {
-            console.log('❌ Fallback failed:', e.message);
-        }
-        
-        return null;
-    }
+function generateLogoUrl(brandName, style) {
+    // ✅ SHORT, SIMPLE PROMPT - JUST BRAND + STYLE
+    const prompt = `${brandName} ${style} logo`;
+    const seed = Math.floor(Math.random() * 10000);
+    // ✅ NO EXTRA PARAMETERS, JUST THE PROMPT
+    const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
+    console.log(`🎨 Generated URL: ${url}`);
+    return url;
 }
 
 // ============================================
@@ -231,19 +170,11 @@ app.post("/generate", async (req, res) => {
         const brandData = await generateWithAI(brandName, industry, style, color);
         currentBrandData = brandData;
         
-        console.log('🎨 Generating logo with Hugging Face...');
-        const imageBuffer = await generateLogoWithHuggingFace(brandName, style);
-
-        if (imageBuffer) {
-            const base64Image = imageBuffer.toString('base64');
-            brandData.logo = `data:image/png;base64,${base64Image}`;
-            brandData.logoUrl = brandData.logo;
-            console.log('✅ Logo attached!');
-        } else {
-            brandData.logo = null;
-            brandData.logoUrl = null;
-            console.log('⚠️ Logo generation failed');
-        }
+        // ✅ SEND URL, NOT BASE64!
+        const logoUrl = generateLogoUrl(brandName, style);
+        brandData.logo = logoUrl;
+        brandData.logoUrl = logoUrl;
+        console.log('✅ Logo URL generated!');
 
         res.json({ 
             success: true, 
@@ -260,7 +191,7 @@ app.post("/generate", async (req, res) => {
 });
 
 // ============================================
-// ✅ REGENERATE LOGO
+// ✅ REGENERATE LOGO - NEW URL
 // ============================================
 
 app.post("/regenerate-logo", async (req, res) => {
@@ -268,16 +199,9 @@ app.post("/regenerate-logo", async (req, res) => {
         const { brandName, style } = req.body;
 
         console.log(`🔄 Regenerating logo for: ${brandName}`);
-        const imageBuffer = await generateLogoWithHuggingFace(brandName, style);
-
-        if (imageBuffer) {
-            const base64Image = imageBuffer.toString('base64');
-            const logo = `data:image/png;base64,${base64Image}`;
-            console.log('✅ Logo regenerated!');
-            res.json({ success: true, logo: logo });
-        } else {
-            res.json({ success: false, message: "Failed to generate logo" });
-        }
+        const logoUrl = generateLogoUrl(brandName, style);
+        console.log('✅ New logo URL generated!');
+        res.json({ success: true, logo: logoUrl });
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -305,5 +229,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Using Hugging Face for images!\n`);
+    console.log(`🎨 Using DIRECT URL method!\n`);
 });
