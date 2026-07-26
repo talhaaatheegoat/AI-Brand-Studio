@@ -12,6 +12,7 @@ app.use(express.static("."));
 // ✅ CHECK API KEY
 let model = null;
 let useAI = false;
+let currentBrandData = null;
 
 if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY_HERE') {
     try {
@@ -153,16 +154,18 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ LOGO GENERATION WITH RETRY
+// ✅ LOGO GENERATION WITH COLORS - FIXED
 // ============================================
 
-async function generateLogoWithRetry(brandName, industry, style, logoConcept, retryCount = 0) {
+async function generateLogoWithRetry(brandName, industry, style, logoConcept, primaryColor, secondaryColor, accentColor, retryCount = 0) {
     const maxRetries = 3;
+    
+    // ✅ ADD COLORS TO PROMPTS
     const promptStyles = [
-        `${brandName} ${logoConcept || industry} logo, ${style}, minimal, vector, flat, white background`,
-        `${brandName} ${industry} logo, ${style}, creative, modern, clean`,
-        `${brandName} logo, ${style}, professional, elegant, simple`,
-        `${brandName} ${logoConcept || industry} icon, ${style}, bold, unique`
+        `${brandName} ${logoConcept || industry} logo, ${style}, colors: ${primaryColor}, ${secondaryColor}, ${accentColor}, vector, flat, white background`,
+        `${brandName} ${industry} logo, ${style}, brand colors: ${primaryColor}, ${secondaryColor}, professional, modern`,
+        `${brandName} logo, ${style}, color palette: ${primaryColor}, ${secondaryColor}, ${accentColor}, clean, minimal`,
+        `${brandName} ${logoConcept || industry} icon, ${style}, using colors ${primaryColor}, ${secondaryColor}, bold, distinctive`
     ];
 
     if (retryCount > 0) {
@@ -173,9 +176,11 @@ async function generateLogoWithRetry(brandName, industry, style, logoConcept, re
 
     for (let i = 0; i < promptStyles.length; i++) {
         try {
-            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStyles[i])}`;
+            const seed = Math.floor(Math.random() * 10000);
+            const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(promptStyles[i])}?seed=${seed}`;
             
             console.log(`🎨 Attempt ${i + 1}/${promptStyles.length}...`);
+            console.log(`🎨 Colors: ${primaryColor}, ${secondaryColor}, ${accentColor}`);
             
             const response = await axios({
                 method: 'get',
@@ -194,7 +199,7 @@ async function generateLogoWithRetry(brandName, industry, style, logoConcept, re
         } catch (error) {
             if (error.response?.status === 429 && retryCount < maxRetries) {
                 console.log(`⚠️ Rate limited (429). Retrying...`);
-                return await generateLogoWithRetry(brandName, industry, style, logoConcept, retryCount + 1);
+                return await generateLogoWithRetry(brandName, industry, style, logoConcept, primaryColor, secondaryColor, accentColor, retryCount + 1);
             }
             console.log(`❌ Attempt ${i + 1} failed: ${error.message}`);
         }
@@ -214,15 +219,28 @@ app.post("/generate", async (req, res) => {
         console.log(`\n🚀 Generating brand: ${brandName}`);
 
         const brandData = await generateWithAI(brandName, industry, style, color);
+        currentBrandData = brandData; // Store for reimagine
         
-        console.log('🎨 Generating logo...');
-        const imageBuffer = await generateLogoWithRetry(brandName, industry, style, brandData.logoConcept);
+        console.log('🎨 Generating logo with colors...');
+        console.log(`🎨 Primary: ${brandData.primaryColor}`);
+        console.log(`🎨 Secondary: ${brandData.secondaryColor}`);
+        console.log(`🎨 Accent: ${brandData.accentColor}`);
+        
+        const imageBuffer = await generateLogoWithRetry(
+            brandName, 
+            industry, 
+            style, 
+            brandData.logoConcept,
+            brandData.primaryColor,
+            brandData.secondaryColor,
+            brandData.accentColor
+        );
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
             brandData.logo = `data:image/png;base64,${base64Image}`;
             brandData.logoUrl = brandData.logo;
-            console.log('✅ Logo attached!');
+            console.log('✅ Logo attached with colors!');
         } else {
             brandData.logo = null;
             brandData.logoUrl = null;
@@ -244,7 +262,7 @@ app.post("/generate", async (req, res) => {
 });
 
 // ============================================
-// ✅ REGENERATE LOGO - FIXED TIMEOUT + RETRY
+// ✅ REGENERATE LOGO WITH COLORS
 // ============================================
 
 app.post("/regenerate-logo", async (req, res) => {
@@ -253,19 +271,17 @@ app.post("/regenerate-logo", async (req, res) => {
 
         console.log(`🔄 Generating DIFFERENT logo for: ${brandName}`);
 
-        // ✅ 8 different prompt styles
+        const primaryColor = currentBrandData?.primaryColor || '#667eea';
+        const secondaryColor = currentBrandData?.secondaryColor || '#764ba2';
+        const accentColor = currentBrandData?.accentColor || '#ff6b6b';
+
         const prompts = [
-            `${brandName} ${logoConcept || industry} logo, ${style}, minimal, vector, flat`,
-            `${brandName} ${industry} logo, ${style}, creative, modern, unique`,
-            `${brandName} logo, ${style}, professional, elegant, simple`,
-            `${brandName} ${logoConcept || industry} icon, ${style}, bold, distinctive`,
-            `${brandName} brand mark, ${style}, minimalist, high quality`,
-            `${brandName} ${industry} symbol, ${style}, flat, vector, premium`,
-            `${brandName} logo design, ${style}, modern, sophisticated`,
-            `${brandName} ${logoConcept || industry} mark, ${style}, elegant, memorable`
+            `${brandName} ${logoConcept || industry} logo, ${style}, colors: ${primaryColor}, ${secondaryColor}, ${accentColor}, minimal, vector, flat`,
+            `${brandName} ${industry} logo, ${style}, brand colors: ${primaryColor}, ${secondaryColor}, creative, modern`,
+            `${brandName} logo, ${style}, color palette: ${primaryColor}, ${secondaryColor}, ${accentColor}, professional, elegant`,
+            `${brandName} ${logoConcept || industry} icon, ${style}, using colors ${primaryColor}, ${secondaryColor}, bold, distinctive`
         ];
 
-        // ✅ Pick random prompt
         const randomIndex = Math.floor(Math.random() * prompts.length);
         const prompt = prompts[randomIndex];
         const seed = Math.floor(Math.random() * 10000);
@@ -273,15 +289,14 @@ app.post("/regenerate-logo", async (req, res) => {
         const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
         
         console.log(`🎨 Prompt ${randomIndex + 1}/${prompts.length}`);
+        console.log(`🎨 Colors: ${primaryColor}, ${secondaryColor}, ${accentColor}`);
         console.log(`🎲 Seed: ${seed}`);
-        console.log(`📸 URL: ${url.substring(0, 80)}...`);
 
-        // ✅ Increased timeout to 60 seconds
         const response = await axios({
             method: 'get',
             url: url,
             responseType: 'arraybuffer',
-            timeout: 60000,  // ← 60 seconds
+            timeout: 60000,
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
             }
@@ -289,8 +304,8 @@ app.post("/regenerate-logo", async (req, res) => {
 
         if (response.data && response.data.length > 1000) {
             const logo = `data:image/png;base64,${response.data.toString('base64')}`;
-            console.log(`✅ NEW logo! (${(response.data.length / 1024).toFixed(1)} KB)`);
-            return res.json({ success: true, logo: logo });
+            console.log(`✅ NEW colored logo! (${(response.data.length / 1024).toFixed(1)} KB)`);
+            res.json({ success: true, logo: logo });
         } else {
             throw new Error('Image too small');
         }
@@ -298,49 +313,35 @@ app.post("/regenerate-logo", async (req, res) => {
     } catch (error) {
         console.error('❌ Error:', error.message);
         
-        // ✅ FALLBACK: Try with simpler prompt
         try {
-            console.log('🔄 Trying fallback with shorter prompt...');
-            const fallbackPrompt = `${brandName} logo simple`;
+            const primaryColor = currentBrandData?.primaryColor || '#667eea';
+            const secondaryColor = currentBrandData?.secondaryColor || '#764ba2';
+            const accentColor = currentBrandData?.accentColor || '#ff6b6b';
+            
+            console.log('🔄 Trying fallback with colors...');
+            const fallbackPrompt = `${brandName} logo with colors ${primaryColor}, ${secondaryColor}, ${accentColor}, simple`;
             const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?seed=${Date.now()}`;
             
             const fallbackResponse = await axios({
                 method: 'get',
                 url: fallbackUrl,
                 responseType: 'arraybuffer',
-                timeout: 45000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                }
+                timeout: 45000
             });
 
             if (fallbackResponse.data && fallbackResponse.data.length > 1000) {
                 const logo = `data:image/png;base64,${fallbackResponse.data.toString('base64')}`;
-                console.log('✅ Fallback logo generated!');
+                console.log('✅ Fallback colored logo generated!');
                 return res.json({ success: true, logo: logo });
-            } else {
-                throw new Error('Fallback image too small');
             }
         } catch (fallbackError) {
             console.error('❌ Fallback failed:', fallbackError.message);
-            
-            // ✅ FINAL FALLBACK: Use the original logo from generation
-            try {
-                console.log('🔄 Using original logo as fallback...');
-                // Get the original logo from the last generation
-                // You'll need to store this, or just return a placeholder
-                return res.json({ 
-                    success: true, 
-                    logo: currentBrandData?.logo || null,
-                    message: "Using original logo (generation failed)"
-                });
-            } catch (finalError) {
-                return res.status(500).json({ 
-                    success: false, 
-                    message: "All logo generation attempts failed" 
-                });
-            }
         }
+
+        res.status(500).json({ 
+            success: false, 
+            message: error.message 
+        });
     }
 });
 
@@ -361,5 +362,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Pollinations ready with RANDOM prompts!\n`);
+    console.log(`🎨 Pollinations ready with COLORS!\n`);
 });
