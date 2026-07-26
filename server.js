@@ -27,6 +27,10 @@ if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_AP
     console.log('⚠️ No Gemini API key, using smart fallback');
 }
 
+// ============================================
+// ✅ SMART FALLBACK BRAND GENERATOR
+// ============================================
+
 function generateSmartBrand(brandName, industry, style, color) {
     const colors = {
         'Orange': { primary: '#FF6B00', secondary: '#FF9A44', accent: '#FFD700' },
@@ -146,67 +150,68 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ LOGO GENERATION WITH DELAY + RETRY
+// ✅ HUGGING FACE IMAGE GENERATION (FREE)
 // ============================================
 
-async function generateLogo(brandName, style, retryCount = 0) {
+async function generateLogoWithHuggingFace(brandName, style) {
     try {
-        // ✅ SIMPLE PROMPT
-        const prompt = `${brandName} ${style} logo`;
-        const seed = Math.floor(Math.random() * 10000);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
+        // ✅ Use a FREE model on Hugging Face
+        const prompt = `A professional ${style} logo for a company named "${brandName}", minimal, clean, vector style, white background`;
         
-        console.log(`🎨 Attempt ${retryCount + 1}: ${prompt}`);
-        console.log(`🎲 Seed: ${seed}`);
+        console.log(`🎨 Generating with Hugging Face...`);
+        console.log(`📝 Prompt: ${prompt}`);
         
+        // Hugging Face API - No API key required for some models!
         const response = await axios({
-            method: 'get',
-            url: url,
-            responseType: 'arraybuffer',
-            timeout: 30000,
+            method: 'post',
+            url: 'https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
+                'Content-Type': 'application/json',
+            },
+            data: {
+                inputs: prompt,
+                parameters: {
+                    negative_prompt: 'text, watermark, ugly, distorted',
+                }
+            },
+            responseType: 'arraybuffer',
+            timeout: 60000
         });
 
-        if (response.data && response.data.length > 500) {
-            console.log(`✅ Logo generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
+        if (response.data && response.data.length > 1000) {
+            console.log(`✅ Image generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
             return response.data;
         } else {
             throw new Error('Image too small');
         }
     } catch (error) {
-        console.log(`❌ Attempt ${retryCount + 1} failed: ${error.message}`);
+        console.log(`❌ Hugging Face error: ${error.message}`);
         
-        // ✅ If rate limited, wait and retry
-        if (error.response?.status === 429 || error.message.includes('timeout')) {
-            if (retryCount < 5) {
-                const delay = (retryCount + 1) * 3000; // 3s, 6s, 9s, 12s, 15s
-                console.log(`⏳ Rate limited! Waiting ${delay/1000}s before retry...`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-                return generateLogo(brandName, style, retryCount + 1);
-            } else {
-                console.log('❌ Max retries reached');
-            }
-        }
-        
-        // ✅ FALLBACK: Brand name only
+        // ✅ FALLBACK: Try a different model
         try {
-            console.log('🔄 Trying fallback (brand only)...');
-            const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(brandName)}%20logo`;
+            console.log('🔄 Trying fallback model...');
             const fallbackResponse = await axios({
-                method: 'get',
-                url: fallbackUrl,
+                method: 'post',
+                url: 'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                data: {
+                    inputs: `${brandName} logo, ${style}, minimal, clean`,
+                    parameters: {
+                        negative_prompt: 'text, watermark, ugly',
+                    }
+                },
                 responseType: 'arraybuffer',
-                timeout: 30000
+                timeout: 60000
             });
 
-            if (fallbackResponse.data && fallbackResponse.data.length > 500) {
-                console.log('✅ Fallback logo generated!');
+            if (fallbackResponse.data && fallbackResponse.data.length > 1000) {
+                console.log('✅ Fallback model worked!');
                 return fallbackResponse.data;
             }
         } catch (e) {
-            console.log('❌ Fallback failed');
+            console.log('❌ Fallback failed:', e.message);
         }
         
         return null;
@@ -226,8 +231,8 @@ app.post("/generate", async (req, res) => {
         const brandData = await generateWithAI(brandName, industry, style, color);
         currentBrandData = brandData;
         
-        console.log('🎨 Generating logo...');
-        const imageBuffer = await generateLogo(brandName, style);
+        console.log('🎨 Generating logo with Hugging Face...');
+        const imageBuffer = await generateLogoWithHuggingFace(brandName, style);
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
@@ -237,7 +242,7 @@ app.post("/generate", async (req, res) => {
         } else {
             brandData.logo = null;
             brandData.logoUrl = null;
-            console.log('⚠️ Logo generation failed after retries');
+            console.log('⚠️ Logo generation failed');
         }
 
         res.json({ 
@@ -263,7 +268,7 @@ app.post("/regenerate-logo", async (req, res) => {
         const { brandName, style } = req.body;
 
         console.log(`🔄 Regenerating logo for: ${brandName}`);
-        const imageBuffer = await generateLogo(brandName, style);
+        const imageBuffer = await generateLogoWithHuggingFace(brandName, style);
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
@@ -300,5 +305,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Logo generator with retry & delay!\n`);
+    console.log(`🎨 Using Hugging Face for images!\n`);
 });
