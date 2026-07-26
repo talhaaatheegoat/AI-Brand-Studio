@@ -8,8 +8,6 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static("."));
 
-let currentBrandData = null;
-
 let model = null;
 let useAI = false;
 
@@ -26,40 +24,45 @@ if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_AP
     console.log('⚠️ No Gemini API key, using smart fallback');
 }
 
+// ============================================
+// ✅ SMART FALLBACK BRAND GENERATOR
+// ============================================
+
 function generateSmartBrand(brandName, industry, style, color) {
     const colors = {
+        'AI Choose': { primary: '#6366F1', secondary: '#818CF8', accent: '#A5B4FC' },
         'Orange': { primary: '#FF6B00', secondary: '#FF9A44', accent: '#FFD700' },
         'Blue': { primary: '#0066FF', secondary: '#4D94FF', accent: '#00D4FF' },
-        'Red': { primary: '#FF0000', secondary: '#FF4444', accent: '#FF6B6B' },
-        'Green': { primary: '#00CC66', secondary: '#33FF99', accent: '#66FFB2' },
+        'Red': { primary: '#EF4444', secondary: '#F87171', accent: '#FCA5A5' },
+        'Green': { primary: '#10B981', secondary: '#34D399', accent: '#6EE7B7' },
         'Purple': { primary: '#7B2FBE', secondary: '#A855F7', accent: '#D8B4FE' },
         'Black': { primary: '#1A1A1A', secondary: '#404040', accent: '#808080' },
         'White': { primary: '#FFFFFF', secondary: '#F5F5F5', accent: '#E0E0E0' },
         'Gold': { primary: '#FFD700', secondary: '#FFE44D', accent: '#FFED99' },
         'Silver': { primary: '#C0C0C0', secondary: '#D8D8D8', accent: '#F0F0F0' },
-        'Pink': { primary: '#FF69B4', secondary: '#FF92C4', accent: '#FFB6D9' },
-        'Cyan': { primary: '#00CED1', secondary: '#4DD9DB', accent: '#99E6E8' }
+        'Pink': { primary: '#EC4899', secondary: '#F472B6', accent: '#FBCFE8' },
+        'Cyan': { primary: '#06B6D4', secondary: '#22D3EE', accent: '#67E8F9' }
     };
 
-    const colorScheme = colors[color] || colors['Blue'];
+    let colorScheme = colors[color];
+    if (!colorScheme) {
+        const colorKeys = Object.keys(colors);
+        const randomColor = colorKeys[Math.floor(Math.random() * colorKeys.length)];
+        colorScheme = colors[randomColor];
+    }
     const primaryColor = colorScheme.primary;
 
-    const industryTaglines = {
-        'Gaming': `Level Up Your Game with ${brandName}`,
-        'Technology': `${brandName}: Innovating Tomorrow's World`,
-        'AI': `${brandName}: Intelligence Redefined`,
-        'Fashion': `${brandName}: Where Style Meets Substance`,
-        'Fitness': `${brandName}: Stronger Every Day`,
-        'Coffee': `${brandName}: Brewing Excellence`,
-        'Restaurant': `${brandName}: A Taste of Perfection`,
-        'Cyber Security': `${brandName}: Protecting What Matters`,
-        'Education': `${brandName}: Empowering Minds`,
-        'Music': `${brandName}: The Sound of Innovation`
-    };
+    const taglines = [
+        `${brandName}: Innovating Tomorrow's World`,
+        `${brandName}: Where Innovation Meets Excellence`,
+        `${brandName}: Redefining ${industry || 'Brand'}`,
+        `${brandName}: The Future of ${industry || 'Brand'}`,
+        `${brandName}: Elevating Your Experience`,
+        `Experience the ${brandName} Difference`
+    ];
+    const tagline = taglines[Math.floor(Math.random() * taglines.length)];
 
-    const tagline = industryTaglines[industry] || `${brandName}: Elevating ${industry}`;
-
-    const styleDesc = {
+    const styleDescriptions = {
         'Modern': 'sleek, contemporary, forward-thinking',
         'Minimal': 'clean, simple, elegant',
         'Luxury': 'premium, sophisticated, exclusive',
@@ -71,7 +74,7 @@ function generateSmartBrand(brandName, industry, style, color) {
         'Mascot': 'friendly, approachable, memorable'
     };
 
-    const styleDescription = styleDesc[style] || 'modern, professional';
+    const styleDescription = styleDescriptions[style] || 'modern, professional';
 
     const fontPairs = {
         'Modern': ['Inter', 'SF Pro Display'],
@@ -85,22 +88,47 @@ function generateSmartBrand(brandName, industry, style, color) {
         'Mascot': ['Fredoka One', 'Nunito']
     };
 
-    const fonts = fontPairs[style] || ['Inter', 'Roboto'];
+    const fonts = fontPairs[style] || ['Poppins', 'Roboto'];
+
+    const audiences = {
+        'Technology': 'Tech-savvy professionals, early adopters, digital natives aged 22-45 who value innovation',
+        'Gaming': 'Gamers aged 16-35, esports enthusiasts, content creators who demand performance',
+        'AI': 'Data scientists, tech executives, business leaders aged 28-60 seeking competitive advantage',
+        'Fashion': 'Fashion-conscious consumers aged 18-40, trendsetters, style influencers',
+        'Fitness': 'Health-conscious individuals aged 20-50, athletes, fitness enthusiasts',
+        'Coffee': 'Coffee lovers aged 22-65, remote workers, foodies, morning commuters',
+        'Restaurant': 'Food enthusiasts aged 25-60, families, corporate clients',
+        'Music': 'Music lovers aged 15-45, musicians, producers, concert-goers',
+        'Education': 'Students aged 5-55, parents, educators, lifelong learners'
+    };
+
+    const targetAudience = audiences[industry] || 
+        `Professionals and consumers in the ${industry || 'brand'} space who value quality and innovation`;
+
+    const brandVoice = `${style}, confident, and inspiring. Communicates with clarity and purpose.`;
+
+    const instagramBio = `✨ ${brandName} | ${style} ${industry || 'Brand'}\n📌 ${tagline}\n👇 Join the movement\n#${brandName.replace(/\s/g, '')}`;
+
+    const competitors = `Key competitors in the ${industry || 'brand'} space offer similar products, but ${brandName} differentiates through its ${style.toLowerCase()} approach, superior design, and commitment to innovation.`;
+
+    const moodBoard = `A ${style.toLowerCase()} visual identity featuring ${primaryColor} as the anchor, complemented by ${colorScheme.secondary} and ${colorScheme.accent}. Clean typography with ${fonts[0]} and ${fonts[1]}.`;
+
+    const brandStory = `${brandName} was born from a vision to transform the ${industry || 'brand'} landscape. With a ${style.toLowerCase()} approach and unwavering commitment to excellence, ${brandName} creates meaningful experiences that resonate with today's audience. Every touchpoint has been meticulously crafted to tell a compelling story of innovation and quality.`;
 
     return {
-        logoConcept: `A ${style.toLowerCase()} ${styleDescription} logo for ${brandName} in the ${industry} industry`,
+        logoConcept: `A ${style.toLowerCase()} ${styleDescription} logo for ${brandName} in the ${industry} industry, featuring a distinctive mark with clean geometry`,
         primaryColor: primaryColor,
         secondaryColor: colorScheme.secondary,
         accentColor: colorScheme.accent,
         primaryFont: fonts[0],
         secondaryFont: fonts[1],
         tagline: tagline,
-        brandStory: `${brandName} is a ${style.toLowerCase()} ${industry} brand that redefines excellence.`,
-        targetAudience: `Professionals in the ${industry} sector.`,
-        instagramBio: `✨ ${brandName} | ${style} ${industry} | ${tagline} 🌟`,
-        brandVoice: `${style}, confident, and inspiring.`,
-        moodBoard: `A ${style.toLowerCase()} color palette with ${primaryColor}.`,
-        competitors: `Other players in the ${industry} space.`
+        brandStory: brandStory,
+        targetAudience: targetAudience,
+        instagramBio: instagramBio,
+        brandVoice: brandVoice,
+        moodBoard: moodBoard,
+        competitors: competitors
     };
 }
 
@@ -110,9 +138,7 @@ async function generateWithAI(brandName, industry, style, color) {
             return generateSmartBrand(brandName, industry, style, color);
         }
 
-        const prompt = `
-Return ONLY valid JSON for this brand identity:
-
+        const prompt = `Return ONLY valid JSON for this brand:
 Brand: ${brandName}
 Industry: ${industry}
 Style: ${style}
@@ -126,11 +152,11 @@ Color: ${color}
   "primaryFont": "Google Font name",
   "secondaryFont": "Google Font name",
   "tagline": "memorable tagline",
-  "brandStory": "compelling brand story (2-3 sentences)",
-  "targetAudience": "detailed target audience description",
-  "instagramBio": "engaging Instagram bio with emojis",
+  "brandStory": "compelling brand story",
+  "targetAudience": "target audience description",
+  "instagramBio": "Instagram bio with emojis",
   "brandVoice": "tone of voice description",
-  "moodBoard": "mood board description with colors and fonts",
+  "moodBoard": "mood board description",
   "competitors": "competitive analysis"
 }`;
 
@@ -144,57 +170,39 @@ Color: ${color}
     }
 }
 
+// ============================================
+// ✅ ENDPOINTS
+// ============================================
+
 app.post("/generate", async (req, res) => {
     try {
-        const { brandName, industry, style, color = "AI Choose" } = req.body;
+        const { brandName, industry, style = 'Modern', color = 'AI Choose' } = req.body;
+
+        if (!brandName || !industry) {
+            return res.status(200).json({ success: false, message: 'Brand name and industry are required' });
+        }
 
         console.log(`\n🚀 Generating brand: ${brandName}`);
 
         const brandData = await generateWithAI(brandName, industry, style, color);
-        currentBrandData = brandData;
-        
         brandData.logo = null;
         brandData.logoUrl = null;
-        console.log('✅ Brand data ready!');
+        console.log('✅ Brand data generated!');
 
-        res.json({ 
-            success: true, 
-            reply: brandData
-        });
+        res.status(200).json({ success: true, reply: brandData });
 
     } catch (error) {
         console.error('❌ Error:', error.message);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message 
-        });
+        res.status(200).json({ success: false, message: error.message });
     }
 });
 
 app.post("/regenerate-logo", async (req, res) => {
-    try {
-        const { brandName } = req.body;
-        console.log(`🔄 Regenerating logo for: ${brandName}`);
-        res.json({ 
-            success: true, 
-            logo: null,
-            message: "Logo regenerated client-side"
-        });
-    } catch (error) {
-        console.error('❌ Error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: error.message 
-        });
-    }
+    res.status(200).json({ success: true });
 });
 
 app.get("/health", (req, res) => {
-    res.json({ 
-        status: "OK", 
-        timestamp: new Date().toISOString(),
-        ai: useAI ? 'Connected' : 'Fallback Mode'
-    });
+    res.status(200).json({ status: "OK", ai: useAI ? 'Connected' : 'Fallback Mode' });
 });
 
 const PORT = process.env.PORT || 3000;
@@ -202,5 +210,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 GOATED Canvas logos ready!\n`);
+    console.log(`🎨 Canvas logos ready!\n`);
 });

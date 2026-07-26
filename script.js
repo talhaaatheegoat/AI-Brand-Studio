@@ -1,1615 +1,303 @@
 const generateBtn = document.getElementById("generateBtn");
-const brandName = document.getElementById("brandName");
-const industry = document.getElementById("industry");
-const style = document.getElementById("style");
-const color = document.getElementById("color");
-const result = document.getElementById("result");
+const brandNameInput = document.getElementById("brandName");
+const industryInput = document.getElementById("industry");
+const styleSelect = document.getElementById("style");
+const colorSelect = document.getElementById("color");
+const resultSection = document.getElementById("result");
 const loading = document.getElementById("loading");
 const historyContainer = document.getElementById("history");
 let currentBrandData = null;
-let currentLogoPrompt = "";
+let currentLogoUrl = "";
 
 loading.style.display = "none";
 
-const API_URL = 'https://ai-brand-studio-production.up.railway.app';
-// const API_URL = 'http://localhost:3000';
+// ✅ Auto-detect API URL
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000'
+    : 'https://ai-brand-studio-production.up.railway.app';
 
 console.log(`📡 API URL: ${API_URL}`);
 
-// ============================================
-// 🐐 50 STYLES + 25 GRADIENTS CANVAS ENGINE
-// ============================================
+// ✅ Clean color function
+function cleanColor(color) {
+    if (!color) return '#6366F1';
+    const hexMatch = color.match(/#[a-fA-F0-9]{6}/);
+    if (hexMatch) return hexMatch[0];
+    return color;
+}
 
-// ✅ 50 UNIQUE STYLES - Each completely different!
+// ============================================================
+// ✅ 30+ CANVAS LOGO STYLES
+// ============================================================
+
 const LOGO_STYLES = [
-    // Classic (1-8)
-    'vintage', 'premium', 'modern', 'luxury', 'elegant', 'classic', 'retro', 'antique',
-    // Modern (9-16)
-    'tech', 'neon', 'gradient', 'geometric', 'minimal', 'bold', 'sleek', 'futuristic',
-    // Artistic (17-26)
-    'creative', 'abstract', 'watercolor', 'sketch', 'pixel', 'glitch', 'popart', 'grunge', 'doodle', 'stencil',
-    // Professional (27-34)
-    'corporate', 'sophisticated', 'refined', 'polished', 'executive', 'prestige', 'elite', 'noble',
-    // Fun (35-42)
-    'cartoon', 'playful', 'whimsical', 'kawaii', 'retrofun', 'groovy', 'bubble', 'rainbow',
-    // Unique (43-50)
-    'steampunk', 'cyberpunk', 'minimalist', 'brutalist', 'artdeco', 'midcentury', 'modernist', 'postmodern'
+    'Premium', 'Neon', 'Glitch', 'Steampunk', 'Cyberpunk', 'Pop Art',
+    'Tech', 'Minimal', 'Bold', 'Gradient', 'Vintage', 'Retro',
+    'Art Deco', 'Watercolor', 'Sketch', 'Pixel', 'Holographic',
+    'Metal', 'Chrome', 'Glassmorphism', 'Synthwave',
+    'Brutalist', 'Typographic', 'Geometric', 'Abstract', 'Nature',
+    'Cosmic', 'Royal', 'Street Art', 'Graffiti', 'Acid',
+    'Pastel', 'Dark Mode', 'Aurora', 'Fire & Ice'
 ];
 
-// ✅ 25 GRADIENT BACKGROUNDS
-const GRADIENTS = [
-    // 1-5: Linear gradients
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createRadialGradient(300,300,50,300,300,400); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,600,600,0); g.addColorStop(0, primaryColor); g.addColorStop(0.3, accentColor); g.addColorStop(0.7, secondaryColor); g.addColorStop(1, primaryColor); return g; },
-    () => { const g = ctx.createRadialGradient(200,200,50,400,400,400); g.addColorStop(0, '#ffffff'); g.addColorStop(0.3, primaryColor); g.addColorStop(0.7, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,0); g.addColorStop(0, primaryColor); g.addColorStop(0.3, accentColor); g.addColorStop(0.6, secondaryColor); g.addColorStop(1, primaryColor); return g; },
-    // 6-10: More complex
-    () => { const g = ctx.createLinearGradient(0,0,0,600); g.addColorStop(0, primaryColor); g.addColorStop(0.5, accentColor); g.addColorStop(1, secondaryColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, primaryColor); g.addColorStop(0.33, secondaryColor); g.addColorStop(0.66, accentColor); g.addColorStop(1, primaryColor); return g; },
-    () => { const g = ctx.createRadialGradient(100,100,50,300,300,400); g.addColorStop(0, primaryColor); g.addColorStop(0.5, accentColor); g.addColorStop(1, secondaryColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, '#ffffff'); g.addColorStop(0.3, primaryColor); g.addColorStop(0.7, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createRadialGradient(500,500,50,300,300,400); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    // 11-15: Vibrant
-    () => { const g = ctx.createLinearGradient(0,0,600,0); g.addColorStop(0, primaryColor); g.addColorStop(0.25, secondaryColor); g.addColorStop(0.5, accentColor); g.addColorStop(0.75, secondaryColor); g.addColorStop(1, primaryColor); return g; },
-    () => { const g = ctx.createRadialGradient(300,300,100,300,300,350); g.addColorStop(0, primaryColor); g.addColorStop(0.6, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,300,600,300); g.addColorStop(0, primaryColor); g.addColorStop(0.3, accentColor); g.addColorStop(0.7, secondaryColor); g.addColorStop(1, primaryColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, primaryColor); g.addColorStop(0.4, '#ffffff'); g.addColorStop(0.6, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createRadialGradient(150,150,20,350,350,350); g.addColorStop(0, '#ffffff'); g.addColorStop(0.2, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(0.8, accentColor); g.addColorStop(1, primaryColor); return g; },
-    // 16-20: Diagonal patterns
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, accentColor); g.addColorStop(0.3, primaryColor); g.addColorStop(0.7, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createRadialGradient(300,100,50,300,300,350); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,0); g.addColorStop(0, secondaryColor); g.addColorStop(0.3, primaryColor); g.addColorStop(0.7, accentColor); g.addColorStop(1, secondaryColor); return g; },
-    () => { const g = ctx.createRadialGradient(100,300,50,400,300,350); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, secondaryColor); g.addColorStop(0.3, '#ffffff'); g.addColorStop(0.7, primaryColor); g.addColorStop(1, accentColor); return g; },
-    // 21-25: Extreme
-    () => { const g = ctx.createRadialGradient(300,300,20,300,300,400); g.addColorStop(0, '#ffffff'); g.addColorStop(0.2, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(0.8, accentColor); g.addColorStop(1, primaryColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,600); g.addColorStop(0, primaryColor); g.addColorStop(0.2, accentColor); g.addColorStop(0.4, secondaryColor); g.addColorStop(0.6, primaryColor); g.addColorStop(0.8, accentColor); g.addColorStop(1, secondaryColor); return g; },
-    () => { const g = ctx.createRadialGradient(200,200,100,400,400,350); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; },
-    () => { const g = ctx.createLinearGradient(0,0,600,0); g.addColorStop(0, '#ffffff'); g.addColorStop(0.2, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(0.8, accentColor); g.addColorStop(1, '#ffffff'); return g; },
-    () => { const g = ctx.createRadialGradient(300,150,50,300,300,400); g.addColorStop(0, primaryColor); g.addColorStop(0.5, secondaryColor); g.addColorStop(1, accentColor); return g; }
+const GRADIENT_BACKGROUNDS = [
+    ['#0f0c29', '#302b63', '#24243e'],
+    ['#000428', '#004e92', '#000428'],
+    ['#1a1a2e', '#16213e', '#0f3460'],
+    ['#0d0d0d', '#1a1a2e', '#16213e'],
+    ['#0f0f0f', '#232323', '#1a1a1a'],
+    ['#0b0b1a', '#1a1a3e', '#2d1b69'],
+    ['#0a0a0a', '#1a1a2e', '#0f3460'],
+    ['#0d0d0d', '#1a1a1a', '#2d2d2d'],
+    ['#000000', '#0d0d0d', '#1a1a1a'],
+    ['#0a0a23', '#1a1a4e', '#141452']
 ];
 
-// ============================================
-// 🎨 GENERATE GOATED LOGO - ALWAYS DIFFERENT!
-// ============================================
+// ============================================================
+// ✅ GENERATE CANVAS LOGO - WITH RANDOM SHAPES
+// ============================================================
 
-function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor) {
+function generateCanvasLogo(brandName, style, colorHex) {
     const canvas = document.createElement('canvas');
-    canvas.width = 600;
-    canvas.height = 600;
+    canvas.width = 512;
+    canvas.height = 512;
     const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
 
-    // ✅ Pick random style (50 options)
-    const selectedStyle = LOGO_STYLES[Math.floor(Math.random() * LOGO_STYLES.length)];
+    const cleanColorHex = cleanColor(colorHex);
+    const styleIndex = Math.floor(Math.random() * LOGO_STYLES.length);
+    const currentStyle = style || LOGO_STYLES[styleIndex];
+    const bgIndex = Math.floor(Math.random() * GRADIENT_BACKGROUNDS.length);
+    const bgColors = GRADIENT_BACKGROUNDS[bgIndex];
+    const firstLetter = brandName.trim().charAt(0).toUpperCase() || 'B';
 
-    // ✅ Pick random gradient (25 options)
-    const bgGrad = GRADIENTS[Math.floor(Math.random() * GRADIENTS.length)]();
+    // BACKGROUND GRADIENT
+    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, 400);
+    bgGrad.addColorStop(0, bgColors[1]);
+    bgGrad.addColorStop(0.5, bgColors[0]);
+    bgGrad.addColorStop(1, bgColors[2]);
     ctx.fillStyle = bgGrad;
-    ctx.roundRect(0, 0, 600, 600, 40);
-    ctx.fill();
+    ctx.fillRect(0, 0, w, h);
 
-    // ✅ GLOW LAYER
-    const glow = ctx.createRadialGradient(300, 300, 50, 300, 300, 350);
-    glow.addColorStop(0, 'rgba(255,255,255,0.12)');
-    glow.addColorStop(0.5, 'rgba(255,255,255,0.04)');
-    glow.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = glow;
-    ctx.roundRect(0, 0, 600, 600, 40);
-    ctx.fill();
+    // AMBIENT GLOW
+    const glowGrad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, 300);
+    glowGrad.addColorStop(0, cleanColorHex + '20');
+    glowGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(0, 0, w, h);
 
-    // ✅ DRAW STYLE
-    switch(selectedStyle) {
-        case 'vintage': drawVintageStyle(ctx, brandName); break;
-        case 'premium': drawPremiumStyle(ctx, brandName); break;
-        case 'modern': drawModernStyle(ctx, brandName); break;
-        case 'luxury': drawLuxuryStyle(ctx, brandName); break;
-        case 'elegant': drawElegantStyle(ctx, brandName); break;
-        case 'classic': drawClassicStyle(ctx, brandName); break;
-        case 'retro': drawRetroStyle(ctx, brandName); break;
-        case 'antique': drawAntiqueStyle(ctx, brandName); break;
-        case 'tech': drawTechStyle(ctx, brandName); break;
-        case 'neon': drawNeonStyle(ctx, brandName); break;
-        case 'gradient': drawGradientStyle(ctx, brandName); break;
-        case 'geometric': drawGeometricStyle(ctx, brandName); break;
-        case 'minimal': drawMinimalStyle(ctx, brandName); break;
-        case 'bold': drawBoldStyle(ctx, brandName); break;
-        case 'sleek': drawSleekStyle(ctx, brandName); break;
-        case 'futuristic': drawFuturisticStyle(ctx, brandName); break;
-        case 'creative': drawCreativeStyle(ctx, brandName); break;
-        case 'abstract': drawAbstractStyle(ctx, brandName); break;
-        case 'watercolor': drawWatercolorStyle(ctx, brandName); break;
-        case 'sketch': drawSketchStyle(ctx, brandName); break;
-        case 'pixel': drawPixelStyle(ctx, brandName); break;
-        case 'glitch': drawGlitchStyle(ctx, brandName); break;
-        case 'popart': drawPopartStyle(ctx, brandName); break;
-        case 'grunge': drawGrungeStyle(ctx, brandName); break;
-        case 'doodle': drawDoodleStyle(ctx, brandName); break;
-        case 'stencil': drawStencilStyle(ctx, brandName); break;
-        case 'corporate': drawCorporateStyle(ctx, brandName); break;
-        case 'sophisticated': drawSophisticatedStyle(ctx, brandName); break;
-        case 'refined': drawRefinedStyle(ctx, brandName); break;
-        case 'polished': drawPolishedStyle(ctx, brandName); break;
-        case 'executive': drawExecutiveStyle(ctx, brandName); break;
-        case 'prestige': drawPrestigeStyle(ctx, brandName); break;
-        case 'elite': drawEliteStyle(ctx, brandName); break;
-        case 'noble': drawNobleStyle(ctx, brandName); break;
-        case 'cartoon': drawCartoonStyle(ctx, brandName); break;
-        case 'playful': drawPlayfulStyle(ctx, brandName); break;
-        case 'whimsical': drawWhimsicalStyle(ctx, brandName); break;
-        case 'kawaii': drawKawaiiStyle(ctx, brandName); break;
-        case 'retrofun': drawRetrofunStyle(ctx, brandName); break;
-        case 'groovy': drawGroovyStyle(ctx, brandName); break;
-        case 'bubble': drawBubbleStyle(ctx, brandName); break;
-        case 'rainbow': drawRainbowStyle(ctx, brandName); break;
-        case 'steampunk': drawSteampunkStyle(ctx, brandName); break;
-        case 'cyberpunk': drawCyberpunkStyle(ctx, brandName); break;
-        case 'minimalist': drawMinimalistStyle(ctx, brandName); break;
-        case 'brutalist': drawBrutalistStyle(ctx, brandName); break;
-        case 'artdeco': drawArtdecoStyle(ctx, brandName); break;
-        case 'midcentury': drawMidcenturyStyle(ctx, brandName); break;
-        case 'modernist': drawModernistStyle(ctx, brandName); break;
-        case 'postmodern': drawPostmodernStyle(ctx, brandName); break;
-        default: drawModernStyle(ctx, brandName);
-    }
+    // ✅ RANDOM SHAPE VARIETY (NEW!)
+    const shapes = ['circles', 'triangles', 'squares', 'hexagons', 'diamonds'];
+    const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
 
-    // ✅ BRAND NAME
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 15;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
-    ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.font = 'bold 38px Arial, sans-serif';
-    ctx.fillText(brandName, 300, 540);
-
-    // ✅ DECORATIVE LINE
-    ctx.shadowBlur = 0;
-    const lineGrad = ctx.createLinearGradient(180, 555, 420, 555);
-    lineGrad.addColorStop(0, 'rgba(255,255,255,0)');
-    lineGrad.addColorStop(0.3, 'rgba(255,255,255,0.6)');
-    lineGrad.addColorStop(0.7, 'rgba(255,255,255,0.6)');
-    lineGrad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.beginPath();
-    ctx.moveTo(180, 555);
-    ctx.lineTo(420, 555);
-    ctx.strokeStyle = lineGrad;
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // ✅ CORNER ACCENTS
-    drawCornerAccent(ctx, 30, 30, 'top-left');
-    drawCornerAccent(ctx, 570, 30, 'top-right');
-    drawCornerAccent(ctx, 30, 570, 'bottom-left');
-    drawCornerAccent(ctx, 570, 570, 'bottom-right');
-
-    // ✅ STYLE TAG
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
-    ctx.font = '10px Arial';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'bottom';
-    ctx.fillText(`✦ ${selectedStyle.toUpperCase()}`, 580, 590);
-
-    return canvas.toDataURL('image/png');
-}
-
-// ============================================
-// 🎨 ALL 50 STYLE FUNCTIONS
-// ============================================
-
-// 1. VINTAGE
-function drawVintageStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 3;
-    ctx.roundRect(60, 70, 480, 400, 15);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    ctx.roundRect(70, 80, 460, 380, 10);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#F5E6D3');
-    grad.addColorStop(1, '#D4C4A8');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    [[80, 90], [520, 90], [80, 440], [520, 440]].forEach(([x, y]) => {
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fill();
-    });
-    ctx.restore();
-}
-
-// 2. PREMIUM
-function drawPremiumStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 8;
-    const goldGrad = ctx.createLinearGradient(200, 150, 400, 350);
-    goldGrad.addColorStop(0, '#FFD700');
-    goldGrad.addColorStop(0.3, '#FFF8DC');
-    goldGrad.addColorStop(0.5, '#FFD700');
-    goldGrad.addColorStop(0.7, '#DAA520');
-    goldGrad.addColorStop(1, '#FFD700');
-    ctx.fillStyle = goldGrad;
-    ctx.font = 'bold 180px Arial, sans-serif';
-    ctx.fillText(letter, 300, 280);
-    ctx.shadowBlur = 20;
-    ctx.shadowColor = 'rgba(255,215,0,0.3)';
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillText(letter, 300, 280);
-    ctx.restore();
-}
-
-// 3. MODERN
-function drawModernStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.save();
-    ctx.translate(300, 260);
-    ctx.rotate(45 * Math.PI / 180);
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.roundRect(-80, -80, 160, 160, 20);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 3;
-    ctx.roundRect(-80, -80, 160, 160, 20);
-    ctx.stroke();
-    ctx.restore();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 170;
-        const y = 270 + Math.sin(angle) * 170;
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 4. LUXURY
-function drawLuxuryStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 2;
-    ctx.roundRect(50, 70, 500, 400, 30);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.lineWidth = 1;
-    ctx.roundRect(60, 80, 480, 380, 25);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(1, 'rgba(255,255,255,0.6)');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px "Times New Roman", serif';
-    ctx.fillText(letter, 300, 270);
-    [[70, 90], [530, 90], [70, 450], [530, 450]].forEach(([x, y]) => {
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(45 * Math.PI / 180);
-        ctx.fillRect(-10, -10, 20, 20);
-        ctx.restore();
-    });
-    ctx.restore();
-}
-
-// 5. ELEGANT
-function drawElegantStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    const grad = ctx.createRadialGradient(250, 200, 30, 300, 270, 150);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    grad.addColorStop(1, 'rgba(255,255,255,0.5)');
-    ctx.fillStyle = grad;
-    ctx.font = 'italic bold 160px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 270, 130, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 6. CLASSIC
-function drawClassicStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.roundRect(50, 70, 500, 400, 20);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 170px "Times New Roman", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 270, 150, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 7. RETRO
-function drawRetroStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    const retroColors = ['#FF6B6B', '#FFE66D', '#4ECDC4', '#45B7D1'];
-    const c1 = retroColors[Math.floor(Math.random() * retroColors.length)];
-    const c2 = retroColors[Math.floor(Math.random() * retroColors.length)];
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    grad.addColorStop(0, c1);
-    grad.addColorStop(1, c2);
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px "Impact", sans-serif';
-    ctx.fillText(letter, 300, 280);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 3;
-    ctx.strokeText(letter, 300, 280);
-    ctx.restore();
-}
-
-// 8. ANTIQUE
-function drawAntiqueStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 4;
-    ctx.roundRect(30, 40, 540, 460, 30);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 2;
-    ctx.roundRect(40, 50, 520, 440, 25);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#D4C4A8');
-    grad.addColorStop(1, '#F5E6D3');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 9. TECH
-function drawTechStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 600; i += 40) {
-        ctx.beginPath();
-        ctx.moveTo(i, 0);
-        ctx.lineTo(i, 600);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, i);
-        ctx.lineTo(600, i);
-        ctx.stroke();
-    }
-    ctx.save();
-    ctx.translate(300, 270);
-    ctx.beginPath();
-    for (let i = 0; i < 6; i++) {
-        const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
-        const x = Math.cos(angle) * 120;
-        const y = Math.sin(angle) * 120;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.restore();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,255,255,0.2)';
-    ctx.shadowBlur = 40;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px "Courier New", monospace';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 10. NEON
-function drawNeonStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const neonColors = ['#00ff88', '#ff00ff', '#00ccff', '#ff6600', '#ff0088', '#88ff00'];
-    const neonColor = neonColors[Math.floor(Math.random() * neonColors.length)];
-    ctx.shadowColor = neonColor;
-    ctx.shadowBlur = 80;
-    ctx.fillStyle = neonColor;
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 40;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 11. GRADIENT
-function drawGradientStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    const colors = ['#FF6B6B', '#FECA57', '#48DBFB', '#FF9FF3', '#54A0FF', '#5F27CD', '#FF6B6B'];
-    const start = Math.floor(Math.random() * 4);
-    for (let i = 0; i < 6; i++) {
-        grad.addColorStop(i / 5, colors[(start + i) % colors.length]);
-    }
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 12. GEOMETRIC
-function drawGeometricStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    const shapes = [
-        () => { ctx.roundRect(100, 100, 400, 340, 20); },
-        () => { ctx.beginPath(); ctx.arc(300, 270, 180, 0, Math.PI * 2); },
-        () => { ctx.save(); ctx.translate(300, 270); ctx.rotate(45 * Math.PI / 180); ctx.roundRect(-130, -130, 260, 260, 15); ctx.restore(); },
-        () => { ctx.save(); ctx.translate(300, 270); for (let i = 0; i < 8; i++) { const a = (i/8)*Math.PI*2; ctx.lineTo(Math.cos(a)*150, Math.sin(a)*150); } ctx.closePath(); ctx.restore(); }
-    ];
-    const shape = shapes[Math.floor(Math.random() * shapes.length)];
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    shape();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.lineWidth = 3;
-    shape();
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 13. MINIMAL
-function drawMinimalStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 120px Arial, sans-serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(300, 260, 140, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 14. BOLD
-function drawBoldStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.4)';
-    ctx.shadowBlur = 40;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 8;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 200px Arial, sans-serif';
-    ctx.fillText(letter, 300, 280);
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 4;
-    ctx.strokeText(letter, 300, 280);
-    ctx.restore();
-}
-
-// 15. SLEEK
-function drawSleekStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 25;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 265);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(300, 265, 100, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 265, 130, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 16. FUTURISTIC
-function drawFuturisticStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    grad.addColorStop(0, '#00ff88');
-    grad.addColorStop(0.5, '#00ccff');
-    grad.addColorStop(1, '#ff00ff');
-    ctx.shadowColor = '#00ccff';
-    ctx.shadowBlur = 50;
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px "Orbitron", "Courier New", monospace';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 190;
-        const y = 270 + Math.sin(angle) * 190;
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(0,255,255,0.2)';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 17. CREATIVE
-function drawCreativeStyle(ctx, name) {
-    ctx.save();
-    for (let i = 0; i < 30; i++) {
-        const x = 100 + Math.random() * 400;
-        const y = 80 + Math.random() * 400;
-        const radius = 10 + Math.random() * 40;
-        const alpha = 0.05 + Math.random() * 0.08;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-        ctx.shadowBlur = 0;
-        ctx.fill();
-    }
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 8;
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.strokeText(letter, 300, 270);
-    const grad = ctx.createRadialGradient(250, 200, 20, 300, 270, 150);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    grad.addColorStop(1, 'rgba(255,255,255,0.6)');
-    ctx.fillStyle = grad;
-    ctx.fillText(letter, 300, 270);
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 190;
-        const y = 270 + Math.sin(angle) * 190;
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 18. ABSTRACT
-function drawAbstractStyle(ctx, name) {
-    ctx.save();
-    for (let i = 0; i < 20; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const w = 30 + Math.random() * 80;
-        const h = 30 + Math.random() * 80;
-        ctx.save();
-        ctx.translate(x, y);
-        ctx.rotate(Math.random() * Math.PI);
-        ctx.fillStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.07})`;
-        ctx.roundRect(-w/2, -h/2, w, h, 10);
-        ctx.fill();
-        ctx.restore();
-    }
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createRadialGradient(200, 200, 50, 400, 300, 200);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.5, 'rgba(255,255,255,0.8)');
-    grad.addColorStop(1, 'rgba(255,255,255,0.3)');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 19. WATERCOLOR
-function drawWatercolorStyle(ctx, name) {
-    ctx.save();
-    for (let i = 0; i < 40; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const radius = 20 + Math.random() * 80;
-        const alpha = 0.02 + Math.random() * 0.05;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-        ctx.shadowBlur = 0;
-        ctx.fill();
-    }
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.strokeText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 20. SKETCH
-function drawSketchStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 150px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    for (let i = 0; i < 5; i++) {
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = `rgba(255,255,255,${0.05 + i * 0.03})`;
-        ctx.lineWidth = 1 + i * 0.5;
-        const offsetX = (Math.random() - 0.5) * 6;
-        const offsetY = (Math.random() - 0.5) * 6;
-        ctx.strokeText(letter, 300 + offsetX, 270 + offsetY);
-    }
-    ctx.restore();
-}
-
-// 21. PIXEL
-function drawPixelStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px "Courier New", monospace';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    const size = 8;
-    for (let x = 0; x < 600; x += size) {
-        for (let y = 0; y < 600; y += size) {
-            if (Math.random() > 0.92) {
-                ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.1})`;
-                ctx.fillRect(x, y, size, size);
+    if (randomShape === 'triangles') {
+        for (let i = 0; i < 10; i++) {
+            const cx = Math.random() * w;
+            const cy = Math.random() * h;
+            const size = 15 + Math.random() * 50;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.random() * Math.PI);
+            ctx.fillStyle = cleanColorHex + '12';
+            ctx.beginPath();
+            ctx.moveTo(0, -size);
+            ctx.lineTo(size, size);
+            ctx.lineTo(-size, size);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    } else if (randomShape === 'squares') {
+        for (let i = 0; i < 10; i++) {
+            const cx = Math.random() * w;
+            const cy = Math.random() * h;
+            const size = 15 + Math.random() * 40;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(Math.random() * Math.PI);
+            ctx.fillStyle = cleanColorHex + '12';
+            ctx.fillRect(-size/2, -size/2, size, size);
+            ctx.restore();
+        }
+    } else if (randomShape === 'hexagons') {
+        for (let i = 0; i < 8; i++) {
+            const cx = Math.random() * w;
+            const cy = Math.random() * h;
+            const size = 12 + Math.random() * 35;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = cleanColorHex + '12';
+            ctx.beginPath();
+            for (let hx = 0; hx < 6; hx++) {
+                const angle = (hx / 6) * Math.PI * 2;
+                const px = Math.cos(angle) * size;
+                const py = Math.sin(angle) * size;
+                hx === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
             }
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    } else if (randomShape === 'diamonds') {
+        for (let i = 0; i < 10; i++) {
+            const cx = Math.random() * w;
+            const cy = Math.random() * h;
+            const size = 12 + Math.random() * 25;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.fillStyle = cleanColorHex + '12';
+            ctx.beginPath();
+            ctx.moveTo(0, -size);
+            ctx.lineTo(size, 0);
+            ctx.lineTo(0, size);
+            ctx.lineTo(-size, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+    } else {
+        // Circles (default)
+        for (let i = 0; i < 8; i++) {
+            const cx = Math.random() * w;
+            const cy = Math.random() * h;
+            const r = 20 + Math.random() * 80;
+            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            grd.addColorStop(0, cleanColorHex + '15');
+            grd.addColorStop(1, 'transparent');
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
         }
     }
-    ctx.restore();
-}
 
-// 22. GLITCH
-function drawGlitchStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(255,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = '#00ffcc';
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 298, 268);
-    ctx.shadowColor = 'rgba(0,255,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillText(letter, 302, 272);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(letter, 300, 270);
-    for (let i = 0; i < 20; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const w = 20 + Math.random() * 60;
-        const h = 2 + Math.random() * 4;
-        ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
-        ctx.fillRect(x, y, w, h);
-    }
-    ctx.restore();
-}
-
-// 23. POPART
-function drawPopartStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const popColors = ['#FF0055', '#FFDD00', '#00FFDD', '#FF8800'];
-    const c1 = popColors[Math.floor(Math.random() * popColors.length)];
-    const c2 = popColors[Math.floor(Math.random() * popColors.length)];
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 20;
-    for (let i = 0; i < 8; i++) {
-        const offsetX = (Math.random() - 0.5) * 10;
-        const offsetY = (Math.random() - 0.5) * 10;
-        ctx.fillStyle = i % 2 === 0 ? c1 : c2;
-        ctx.globalAlpha = 0.2 + i * 0.05;
-        ctx.font = `bold ${160 + i * 2}px Arial, sans-serif`;
-        ctx.fillText(letter, 300 + offsetX, 270 + offsetY);
-    }
-    ctx.globalAlpha = 1;
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-    ctx.lineWidth = 3;
-    ctx.strokeText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 24. GRUNGE
-function drawGrungeStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    for (let i = 0; i < 100; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const radius = 1 + Math.random() * 4;
+    // DECORATIVE RINGS
+    for (let i = 0; i < 3; i++) {
+        ctx.strokeStyle = cleanColorHex + '30';
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(x, y, radius, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(0,0,0,${Math.random() * 0.15})`;
-        ctx.fill();
-    }
-    for (let i = 0; i < 20; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        ctx.strokeStyle = `rgba(0,0,0,${Math.random() * 0.05})`;
-        ctx.lineWidth = 1 + Math.random() * 2;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x + (Math.random() - 0.5) * 100, y + (Math.random() - 0.5) * 100);
+        ctx.arc(w / 2, h / 2 - 20, 150 + i * 40, 0, Math.PI * 2);
         ctx.stroke();
     }
-    ctx.restore();
-}
 
-// 25. DOODLE
-function drawDoodleStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    for (let i = 0; i < 30; i++) {
-        const x = 50 + Math.random() * 500;
-        const y = 50 + Math.random() * 500;
-        ctx.strokeStyle = `rgba(255,255,255,${0.05 + Math.random() * 0.1})`;
-        ctx.lineWidth = 1 + Math.random() * 2;
-        ctx.beginPath();
-        ctx.arc(x, y, 10 + Math.random() * 30, 0, Math.PI * 2);
-        ctx.stroke();
-    }
-    ctx.restore();
-}
-
-// 26. STENCIL
-function drawStencilStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 20;
-    ctx.strokeText(letter, 300, 270);
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 10; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        ctx.fillRect(x, y, 3, 3);
-    }
-    ctx.restore();
-}
-
-// 27. CORPORATE
-function drawCorporateStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.roundRect(40, 50, 520, 460, 15);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.moveTo(150, 320);
-    ctx.lineTo(450, 320);
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 28. SOPHISTICATED
-function drawSophisticatedStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 25;
-    const grad = ctx.createRadialGradient(200, 200, 50, 300, 270, 180);
-    grad.addColorStop(0, '#ffffff');
-    grad.addColorStop(0.4, 'rgba(255,255,255,0.9)');
-    grad.addColorStop(0.8, 'rgba(255,255,255,0.5)');
-    grad.addColorStop(1, 'rgba(255,255,255,0.2)');
-    ctx.fillStyle = grad;
-    ctx.font = 'italic bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 270, 110, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 29. REFINED
-function drawRefinedStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#FFE4D6');
-    grad.addColorStop(0.5, '#F5D5C6');
-    grad.addColorStop(1, '#E8C4B5');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 140px "Times New Roman", serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 260, 120, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 30. POLISHED
-function drawPolishedStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 4;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 155px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.strokeText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 31. EXECUTIVE
-function drawExecutiveStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 4;
-    ctx.roundRect(50, 60, 500, 450, 10);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.04)';
-    ctx.lineWidth = 1;
-    ctx.roundRect(60, 70, 480, 430, 8);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 130px Arial, sans-serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.moveTo(170, 320);
-    ctx.lineTo(430, 320);
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 32. PRESTIGE
-function drawPrestigeStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 35;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 5;
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#FFE4B5');
-    grad.addColorStop(0.3, '#FFD700');
-    grad.addColorStop(0.5, '#FFF8DC');
-    grad.addColorStop(0.7, '#FFD700');
-    grad.addColorStop(1, '#DAA520');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.strokeStyle = 'rgba(255,215,0,0.2)';
-    ctx.lineWidth = 2;
-    ctx.strokeText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 33. ELITE
-function drawEliteStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,215,0,0.15)';
-    ctx.lineWidth = 3;
-    ctx.roundRect(40, 50, 520, 460, 25);
-    ctx.stroke();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#FFD700');
-    grad.addColorStop(1, '#FFF8DC');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    [[60, 70], [540, 70], [60, 490], [540, 490]].forEach(([x, y]) => {
-        ctx.fillStyle = 'rgba(255,215,0,0.2)';
-        ctx.beginPath();
-        ctx.arc(x, y, 6, 0, Math.PI * 2);
-        ctx.fill();
-    });
-    ctx.restore();
-}
-
-// 34. NOBLE
-function drawNobleStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 30;
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    grad.addColorStop(0, '#C0C0C0');
-    grad.addColorStop(0.5, '#FFFFFF');
-    grad.addColorStop(1, '#C0C0C0');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 170px "Times New Roman", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(192,192,192,0.15)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 270, 140, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 35. CARTOON
-function drawCartoonStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 160px "Comic Sans MS", cursive';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(0,0,0,0.15)';
-    ctx.lineWidth = 4;
-    ctx.strokeText(letter, 300, 270);
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 180;
-        const y = 270 + Math.sin(angle) * 180;
-        ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,255,255,0.1)';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 36. PLAYFUL
-function drawPlayfulStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 150px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    const colors = ['#FF6B6B', '#FFE66D', '#4ECDC4', '#45B7D1', '#FF9FF3'];
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 160;
-        const y = 270 + Math.sin(angle) * 160;
-        ctx.beginPath();
-        ctx.arc(x, y, 12 + Math.random() * 8, 0, Math.PI * 2);
-        ctx.fillStyle = colors[i % colors.length] + '33';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 37. WHIMSICAL
-function drawWhimsicalStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.15)';
-    ctx.shadowBlur = 15;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'italic bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
+    // DECORATIVE DOTS
     for (let i = 0; i < 20; i++) {
-        const x = 100 + Math.random() * 400;
-        const y = 80 + Math.random() * 400;
+        const dx = Math.random() * w;
+        const dy = Math.random() * h;
+        const ds = 2 + Math.random() * 4;
+        ctx.fillStyle = cleanColorHex + '60';
         ctx.beginPath();
-        ctx.arc(x, y, 5 + Math.random() * 15, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${0.05 + Math.random() * 0.1})`;
+        ctx.arc(dx, dy, ds, 0, Math.PI * 2);
         ctx.fill();
     }
-    ctx.restore();
-}
 
-// 38. KAWAII
-function drawKawaiiStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(255,105,180,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 150px "Comic Sans MS", cursive';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    const colors = ['#FF69B4', '#FFB6C1', '#FF1493', '#FFC0CB'];
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 140;
-        const y = 270 + Math.sin(angle) * 140;
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.fillStyle = colors[i % colors.length] + '33';
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(x, y, 8, 0, Math.PI * 2);
-        ctx.fillStyle = colors[i % colors.length] + '55';
-        ctx.fill();
-    }
-    ctx.restore();
-}
-
-// 39. RETROFUN
-function drawRetrofunStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    grad.addColorStop(0, '#FF6B6B');
-    grad.addColorStop(0.3, '#FFE66D');
-    grad.addColorStop(0.6, '#4ECDC4');
-    grad.addColorStop(1, '#45B7D1');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px "Impact", sans-serif';
-    ctx.fillText(letter, 300, 275);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 3;
-    ctx.strokeText(letter, 300, 275);
-    ctx.restore();
-}
-
-// 40. GROOVY
-function drawGroovyStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 150px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    const colors = ['#FF6B6B', '#FFE66D', '#4ECDC4', '#45B7D1', '#FF9FF3', '#FECA57'];
-    for (let i = 0; i < 12; i++) {
-        const angle = (i / 12) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 170;
-        const y = 270 + Math.sin(angle) * 170;
+    // SPARKLES
+    function drawSparkle(x, y, size) {
         ctx.save();
         ctx.translate(x, y);
-        ctx.rotate(angle);
-        ctx.fillStyle = colors[i % colors.length] + '55';
-        ctx.fillRect(-20, -5, 40, 10);
+        ctx.fillStyle = cleanColorHex + '80';
+        ctx.shadowColor = cleanColorHex;
+        ctx.shadowBlur = 10;
+        for (let i = 0; i < 4; i++) {
+            ctx.rotate(Math.PI / 4);
+            ctx.fillRect(-size / 2, -size / 8, size, size / 4);
+        }
         ctx.restore();
     }
-    ctx.restore();
-}
+    drawSparkle(80, 100, 20);
+    drawSparkle(430, 120, 15);
+    drawSparkle(100, 400, 18);
+    drawSparkle(420, 380, 22);
 
-// 41. BUBBLE
-function drawBubbleStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
+    // MAIN LETTER
+    const letterSize = 180;
+    const letterX = w / 2;
+    const letterY = h / 2 - 30;
+    const brandNameY = letterY + 120;
+
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 150px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    for (let i = 0; i < 30; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const r = 5 + Math.random() * 25;
-        const grad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
-        grad.addColorStop(0, `rgba(255,255,255,${0.1 + Math.random() * 0.2})`);
-        grad.addColorStop(1, `rgba(255,255,255,${0.02 + Math.random() * 0.05})`);
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.strokeStyle = `rgba(255,255,255,${0.03 + Math.random() * 0.05})`;
-        ctx.lineWidth = 1;
-        ctx.stroke();
-    }
-    ctx.restore();
-}
 
-// 42. RAINBOW
-function drawRainbowStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    const colors = ['#FF0000', '#FF7F00', '#FFFF00', '#00FF00', '#0000FF', '#4B0082', '#8B00FF'];
-    for (let i = 0; i < colors.length; i++) {
-        grad.addColorStop(i / (colors.length - 1), colors[i]);
-    }
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 160px Arial, sans-serif';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.strokeText(letter, 300, 270);
-    ctx.restore();
-}
-
-// 43. STEAMPUNK
-function drawSteampunkStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,215,0,0.12)';
-    ctx.lineWidth = 2;
-    ctx.roundRect(40, 40, 520, 480, 30);
-    ctx.stroke();
-    for (let i = 0; i < 8; i++) {
-        const angle = (i / 8) * Math.PI * 2;
-        const x = 300 + Math.cos(angle) * 200;
-        const y = 270 + Math.sin(angle) * 200;
-        ctx.beginPath();
-        ctx.arc(x, y, 15, 0, Math.PI * 2);
-        ctx.strokeStyle = 'rgba(255,215,0,0.08)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    }
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    // DEFAULT: Modern Gradient Letter
+    ctx.font = `bold ${letterSize}px 'Poppins', Arial, sans-serif`;
+    const defGrad = ctx.createLinearGradient(letterX - 100, letterY - 100, letterX + 100, letterY + 100);
+    defGrad.addColorStop(0, cleanColorHex);
+    defGrad.addColorStop(0.5, '#ffffff');
+    defGrad.addColorStop(1, cleanColorHex);
+    ctx.fillStyle = defGrad;
+    ctx.shadowColor = cleanColorHex;
     ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#D4A547');
-    grad.addColorStop(1, '#B8860B');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 150px "Georgia", serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.restore();
-}
-
-// 44. CYBERPUNK
-function drawCyberpunkStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = '#ff00ff';
-    ctx.shadowBlur = 50;
-    ctx.fillStyle = '#00ffff';
-    ctx.font = 'bold 160px "Courier New", monospace';
-    ctx.fillText(letter, 300, 270);
-    ctx.shadowColor = '#00ffff';
-    ctx.shadowBlur = 50;
-    ctx.fillStyle = '#ff00ff';
-    ctx.fillText(letter, 298, 268);
+    ctx.fillText(firstLetter, letterX, letterY);
     ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#ffffff40';
+    ctx.lineWidth = 1.5;
+    ctx.strokeText(firstLetter, letterX, letterY);
+
+    // BRAND NAME
+    ctx.font = `600 ${brandName.length > 8 ? 22 : 26}px 'Poppins', Arial, sans-serif`;
     ctx.fillStyle = '#ffffff';
-    ctx.fillText(letter, 300, 270);
-    for (let i = 0; i < 20; i++) {
-        const x = Math.random() * 600;
-        const y = Math.random() * 600;
-        const w = 10 + Math.random() * 40;
-        ctx.fillStyle = `rgba(0,255,255,${Math.random() * 0.05})`;
-        ctx.fillRect(x, y, w, 1);
-    }
-    ctx.restore();
+    ctx.shadowColor = '#00000060';
+    ctx.shadowBlur = 10;
+    ctx.fillText(brandName.toUpperCase(), letterX, brandNameY);
+
+    // VIGNETTE
+    const vigGrad = ctx.createRadialGradient(w / 2, h / 2, 200, w / 2, h / 2, 350);
+    vigGrad.addColorStop(0, 'transparent');
+    vigGrad.addColorStop(1, '#00000060');
+    ctx.fillStyle = vigGrad;
+    ctx.fillRect(0, 0, w, h);
+
+    return canvas;
 }
 
-// 45. MINIMALIST
-function drawMinimalistStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.15)';
-    ctx.shadowBlur = 15;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = '100 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 265);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.arc(300, 265, 130, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
+// ============================================================
+// ✅ POLLINATIONS LOGO URL
+// ============================================================
+
+function generateLogoUrl(brandName, style) {
+    const prompt = `${brandName} ${style} logo, professional, clean, vector`;
+    const encodedPrompt = encodeURIComponent(prompt);
+    const seed = Math.floor(Math.random() * 10000);
+    return `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&t=${Date.now()}`;
 }
 
-// 46. BRUTALIST
-function drawBrutalistStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 180px "Impact", sans-serif';
-    ctx.fillText(letter, 300, 280);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, 520, 480);
-    ctx.strokeRect(45, 45, 510, 470);
-    ctx.restore();
+// ============================================================
+// ✅ RENDER CANVAS LOGO TO DOM
+// ============================================================
+
+function renderCanvasLogoToDOM(brandName, style, colorHex) {
+    const canvas = generateCanvasLogo(brandName, style, colorHex);
+    const dataUrl = canvas.toDataURL('image/png');
+    const styleIndex = Math.floor(Math.random() * LOGO_STYLES.length);
+    const usedStyle = LOGO_STYLES[styleIndex];
+    return { dataUrl, usedStyle };
 }
 
-// 47. ARTDECO
-function drawArtdecoStyle(ctx, name) {
-    ctx.save();
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,215,0,0.1)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 5; i++) {
-        const s = 80 + i * 40;
-        ctx.roundRect(300 - s/2, 270 - s/2, s, s, 5);
-        ctx.stroke();
-    }
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 25;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(200, 150, 400, 350);
-    grad.addColorStop(0, '#FFD700');
-    grad.addColorStop(1, '#FFF8DC');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 130px "Georgia", serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.restore();
-}
-
-// 48. MIDCENTURY
-function drawMidcenturyStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const grad = ctx.createLinearGradient(100, 100, 500, 500);
-    grad.addColorStop(0, '#F4A460');
-    grad.addColorStop(1, '#DEB887');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 140px "Georgia", serif';
-    ctx.fillText(letter, 300, 260);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(300, 260, 120, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 49. MODERNIST
-function drawModernistStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 140px "Helvetica Neue", sans-serif';
-    ctx.fillText(letter, 300, 265);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(100, 320);
-    ctx.lineTo(500, 320);
-    ctx.stroke();
-    ctx.restore();
-}
-
-// 50. POSTMODERN
-function drawPostmodernStyle(ctx, name) {
-    ctx.save();
-    const letter = name.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.shadowBlur = 20;
-    const grad = ctx.createRadialGradient(200, 200, 50, 400, 300, 200);
-    grad.addColorStop(0, '#FF6B6B');
-    grad.addColorStop(0.3, '#FECA57');
-    grad.addColorStop(0.6, '#48DBFB');
-    grad.addColorStop(1, '#FF9FF3');
-    ctx.fillStyle = grad;
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 300, 265);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 4; i++) {
-        const x = 100 + i * 133;
-        ctx.beginPath();
-        ctx.moveTo(x, 80);
-        ctx.lineTo(x, 480);
-        ctx.stroke();
-    }
-    ctx.restore();
-}
-
-// ============================================
-// 🏛️ HELPER FUNCTIONS
-// ============================================
-
-function drawCornerAccent(ctx, x, y, position) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
-    ctx.lineWidth = 3;
-    const size = 25;
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    if (position === 'top-left') {
-        ctx.moveTo(0, size);
-        ctx.lineTo(0, 0);
-        ctx.lineTo(size, 0);
-    } else if (position === 'top-right') {
-        ctx.moveTo(0, 0);
-        ctx.lineTo(size, 0);
-        ctx.lineTo(size, size);
-    } else if (position === 'bottom-left') {
-        ctx.moveTo(0, 0);
-        ctx.lineTo(0, size);
-        ctx.lineTo(size, size);
-    } else if (position === 'bottom-right') {
-        ctx.moveTo(size, 0);
-        ctx.lineTo(size, size);
-        ctx.lineTo(0, size);
-    }
-    ctx.stroke();
-    ctx.restore();
-}
-
-if (!CanvasRenderingContext2D.prototype.roundRect) {
-    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-        if (r > w / 2) r = w / 2;
-        if (r > h / 2) r = h / 2;
-        this.moveTo(x + r, y);
-        this.lineTo(x + w - r, y);
-        this.quadraticCurveTo(x + w, y, x + w, y + r);
-        this.lineTo(x + w, y + h - r);
-        this.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-        this.lineTo(x + r, y + h);
-        this.quadraticCurveTo(x, y + h, x, y + h - r);
-        this.lineTo(x, y + r);
-        this.quadraticCurveTo(x, y, x + r, y);
-        return this;
-    };
-}
-
-// ============================================
-// ✅ GENERATE BUTTON - HYBRID APPROACH
-// ============================================
+// ============================================================
+// ✅ GENERATE BUTTON
+// ============================================================
 
 generateBtn.addEventListener("click", async () => {
-    if (!brandName.value.trim() || !industry.value.trim()) {
+    if (!brandNameInput.value.trim() || !industryInput.value.trim()) {
         alert("Please fill all fields.");
         return;
     }
 
-    loading.style.display = "block";
+    loading.style.display = "flex";
     generateBtn.disabled = true;
-    generateBtn.innerHTML = "Generating...";
-    result.innerHTML = "";
+    generateBtn.innerHTML = "⏳ Generating...";
+    resultSection.innerHTML = "";
 
     try {
         const response = await fetch(`${API_URL}/generate`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                brandName: brandName.value,
-                industry: industry.value,
-                style: style.value,
-                color: color.value
+                brandName: brandNameInput.value,
+                industry: industryInput.value,
+                style: styleSelect.value,
+                color: colorSelect.value
             })
         });
 
@@ -1617,241 +305,266 @@ generateBtn.addEventListener("click", async () => {
 
         loading.style.display = "none";
         generateBtn.disabled = false;
-        generateBtn.innerHTML = "Generate Brand";
+        generateBtn.innerHTML = "✨ Generate Brand Identity";
 
-        if (!data.success) {
-            result.innerHTML = `
-<div class="result-card">
-    <h2>❌ Error</h2>
-    <p>${data.message || "Please try again"}</p>
-</div>`;
+        if (!data.success || !data.reply) {
+            resultSection.innerHTML = `
+                <div class="result-card">
+                    <h2>❌ Error</h2>
+                    <p>${data.message || 'Failed to generate brand identity.'}</p>
+                </div>`;
             return;
         }
 
         const ai = data.reply;
         currentBrandData = ai;
-        currentLogoPrompt = `${brandName.value} ${industry.value} ${style.value} logo`;
 
         saveHistory({
-            brandName: brandName.value,
+            brandName: brandNameInput.value,
             tagline: ai.tagline
         });
 
-        // ✅ HYBRID: Try Pollinations API first
-        let logoDataUrl = null;
-        let usedApi = false;
+        const brandName = brandNameInput.value;
+        const cleanPrimary = cleanColor(ai.primaryColor);
+        const cleanSecondary = cleanColor(ai.secondaryColor);
+        const cleanAccent = cleanColor(ai.accentColor);
 
-        try {
-            console.log("🌐 Trying Pollinations API...");
-            const prompt = `${brandName.value} ${style.value} logo`;
-            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${Date.now()}`;
-            
-            const imgResponse = await fetch(pollinationsUrl);
-            if (imgResponse.ok) {
-                const blob = await imgResponse.blob();
-                if (blob.size > 500) {
-                    const reader = new FileReader();
-                    logoDataUrl = await new Promise((resolve) => {
-                        reader.onload = () => resolve(reader.result);
-                        reader.readAsDataURL(blob);
-                    });
-                    usedApi = true;
-                    console.log("✅ Pollinations API worked!");
-                }
-            }
-        } catch (e) {
-            console.log("⚠️ Pollinations failed:", e.message);
-        }
+        // Generate Canvas logo (always works)
+        const { dataUrl: canvasLogoUrl, usedStyle } = renderCanvasLogoToDOM(brandName, styleSelect.value, cleanPrimary);
+        
+        // Try Pollinations
+        const pollinationsUrl = generateLogoUrl(brandName, styleSelect.value);
+        currentLogoUrl = canvasLogoUrl;
 
-        // ✅ FALLBACK: Use Canvas if API failed
-        if (!logoDataUrl) {
-            console.log("🎨 Using Canvas fallback with 50 styles...");
-            logoDataUrl = generateGoatedLogo(
-                brandName.value,
-                ai.primaryColor,
-                ai.secondaryColor,
-                ai.accentColor
-            );
-        }
+        const logoHTML = `
+            <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
+                <img 
+                    id="generatedLogo" 
+                    src="${pollinationsUrl}"
+                    alt="Generated Logo"
+                    style="max-width:280px;width:100%;border-radius:16px;box-shadow:0 15px 50px rgba(0,0,0,0.4);display:block;"
+                    onerror="this.style.display='none'; document.getElementById('canvasFallbackLogo').style.display='block';"
+                    onload="document.getElementById('canvasFallbackLogo').style.display='none';"
+                >
+                <canvas 
+                    id="canvasFallbackLogo" 
+                    style="display:none;max-width:280px;width:100%;border-radius:16px;box-shadow:0 15px 50px rgba(0,0,0,0.4);"
+                ></canvas>
+                <p style="color:#888;font-size:0.8rem;margin-top:8px;">🎨 Style: ${usedStyle}</p>
+                <button class="new-logo-btn" id="reimagineBtn" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:15px;">
+                    <span class="refresh-icon">↻</span>
+                    <span>Reimagine Logo</span>
+                </button>
+                <br>
+                <a id="downloadLogo" href="${canvasLogoUrl}" download="${brandName}-logo.png" target="_blank" style="padding:14px 35px;background:#28a745;color:white;border-radius:30px;text-decoration:none;display:inline-block;font-weight:600;margin-top:10px;">
+                    ⬇ Download Logo
+                </a>
+            </div>`;
 
-        let logoHTML = `
-<div style="display:flex;flex-direction:column;align-items:center;width:100%;">
-    <img 
-        id="generatedLogo" 
-        src="${logoDataUrl}"
-        alt="Generated Logo"
-        style="max-width:320px;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);display:block;"
-        onload="console.log('✅ Logo loaded!')"
-        onerror="console.log('❌ Image load failed'); this.src='${generateGoatedLogo(brandName.value, ai.primaryColor, ai.secondaryColor, ai.accentColor)}';"
-    >
-    <br>
-    <div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center;">
-        <button class="new-logo-btn" id="reimagineBtn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(102,126,234,0.3);">
-            <span class="refresh-icon">↻</span>
-            <span>Reimagine Logo</span>
-        </button>
-        <a id="downloadLogo" href="${logoDataUrl}" download="logo.png" target="_blank" style="padding:14px 35px;background:linear-gradient(135deg, #28a745, #20c997);color:white;border-radius:30px;text-decoration:none;display:inline-block;font-weight:600;box-shadow:0 4px 15px rgba(40,167,69,0.3);">
-            ⬇ Download Logo
-        </a>
-    </div>
-    ${usedApi ? '<p style="color:#4ade80;font-size:0.7rem;margin-top:5px;">✨ AI Generated</p>' : '<p style="color:#a8b2d1;font-size:0.7rem;margin-top:5px;">🎨 Canvas Pro</p>'}
-</div>`;
-
-        result.innerHTML = `
+        resultSection.innerHTML = `
 <div class="result-card fade-in" style="background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:24px;padding:35px;border:1px solid rgba(255,255,255,0.08);">
-    <h2 style="color:#e6f1ff;font-size:2rem;margin-bottom:20px;">🖼 Generated Logo</h2>
-    <div class="logo-container" style="background:rgba(0,0,0,0.2);border-radius:20px;padding:30px;">${logoHTML}</div>
+    <h2 style="color:#e6f1ff;font-size:2rem;margin-bottom:25px;text-align:center;">🖼 ${brandName} Logo</h2>
+    <div class="logo-container" style="background:rgba(0,0,0,0.3);border-radius:20px;padding:30px;display:flex;flex-direction:column;align-items:center;">
+        ${logoHTML}
+    </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎨 Logo Concept</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.logoConcept}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.logoConcept}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🌈 Color Palette</h2>
     <div style="display:flex;gap:15px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
-            <div style="width:45px;height:45px;border-radius:12px;background:${ai.primaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;font-weight:500;">${ai.primaryColor}</span>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:${cleanPrimary};border:2px solid rgba(255,255,255,0.15);"></div>
+            <span style="color:#c8d0e0;">${cleanPrimary}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
-            <div style="width:45px;height:45px;border-radius:12px;background:${ai.secondaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;font-weight:500;">${ai.secondaryColor}</span>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:${cleanSecondary};border:2px solid rgba(255,255,255,0.15);"></div>
+            <span style="color:#c8d0e0;">${cleanSecondary}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
-            <div style="width:45px;height:45px;border-radius:12px;background:${ai.accentColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;font-weight:500;">${ai.accentColor}</span>
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+            <div style="width:48px;height:48px;border-radius:12px;background:${cleanAccent};border:2px solid rgba(255,255,255,0.15);"></div>
+            <span style="color:#c8d0e0;">${cleanAccent}</span>
         </div>
     </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🔤 Fonts</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;"><b style="color:#e6f1ff;">Primary:</b> ${ai.primaryFont}</p>
-    <p style="color:#a8b2d1;font-size:1.1rem;"><b style="color:#e6f1ff;">Secondary:</b> ${ai.secondaryFont}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;"><b style="color:#e6f1ff;">Primary:</b> ${ai.primaryFont}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;"><b style="color:#e6f1ff;">Secondary:</b> ${ai.secondaryFont}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">💬 Tagline</h2>
-    <h3 style="color:#ffd700;font-size:1.4rem;font-style:italic;">"${ai.tagline}"</h3>
+    <h3 style="color:#FFD700;font-size:1.5rem;font-style:italic;">"${ai.tagline}"</h3>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📖 Brand Story</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.brandStory}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.brandStory}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎯 Target Audience</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.targetAudience}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.targetAudience}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📱 Instagram Bio</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.instagramBio}</p>
+    <div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,0.06);">
+        <p style="color:#e6f1ff;font-size:1.05rem;white-space:pre-wrap;">${ai.instagramBio}</p>
+    </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">💬 Brand Voice</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.brandVoice || 'Professional and inspiring'}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.brandVoice || 'Professional and inspiring.'}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎨 Mood Board</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.moodBoard || 'A cohesive visual identity with carefully selected colors, typography, and design elements.'}</p>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.moodBoard || 'Cohesive visual identity.'}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🏆 Competitor Analysis</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.competitors || 'Positioned uniquely in the market with a distinctive style and approach.'}</p>
-    <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:25px;">
-        <button class="copy-btn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(102,126,234,0.3);">📋 Copy Brand Identity</button>
-        <button class="export-btn" style="background:linear-gradient(135deg, #f093fb, #f5576c);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(245,87,108,0.3);">📄 Export Brand Identity</button>
+    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.competitors || 'Unique market positioning.'}</p>
+    <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:35px;justify-content:center;">
+        <button class="copy-btn" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;">📋 Copy Brand Identity</button>
+        <button class="export-btn" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;">📄 Export (.txt)</button>
     </div>
 </div>`;
 
-        setupButtons(ai);
+        // Display Canvas fallback
+        const canvasEl = document.getElementById('canvasFallbackLogo');
+        if (canvasEl) {
+            const img = new Image();
+            img.onload = function() {
+                canvasEl.width = 512;
+                canvasEl.height = 512;
+                const ctx = canvasEl.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = canvasLogoUrl;
+        }
+
+        setupButtons(ai, brandName, canvasLogoUrl, cleanPrimary);
 
     } catch (error) {
         loading.style.display = "none";
         generateBtn.disabled = false;
-        generateBtn.innerHTML = "Generate Brand";
-        result.innerHTML = `
-<div class="result-card">
-    <h2>❌ Cannot connect to server</h2>
-    <p>Make sure server is running on ${API_URL}</p>
-    <p style="font-size:0.8rem;color:#999;">Error: ${error.message}</p>
-</div>`;
-        console.error(error);
+        generateBtn.innerHTML = "✨ Generate Brand Identity";
+        resultSection.innerHTML = `
+            <div class="result-card">
+                <h2>❌ Connection Error</h2>
+                <p>Could not connect to server at ${API_URL}</p>
+                <p style="font-size:0.85rem;color:#888;">Error: ${error.message}</p>
+            </div>`;
+        console.error('❌ Error:', error);
     }
 });
 
-// ============================================
+// ============================================================
 // ✅ SETUP BUTTONS
-// ============================================
+// ============================================================
 
-function setupButtons(ai) {
+function setupButtons(ai, brandName, canvasLogoUrl, cleanPrimary) {
+    // COPY BUTTON
     const copyBtn = document.querySelector(".copy-btn");
     if (copyBtn) {
         copyBtn.onclick = () => {
-            const brandInfo = `
-🐐 GOATED BRAND IDENTITY KIT
-===============================
-Brand: ${brandName.value}
-Industry: ${industry.value}
-Style: ${style.value}
-Color: ${color.value}
---------------------------------
-Tagline: ${ai.tagline}
-Logo Concept: ${ai.logoConcept}
---------------------------------
-Primary Color: ${ai.primaryColor}
-Secondary Color: ${ai.secondaryColor}
-Accent Color: ${ai.accentColor}
---------------------------------
-Primary Font: ${ai.primaryFont}
-Secondary Font: ${ai.secondaryFont}
---------------------------------
-Brand Story: ${ai.brandStory}
-Target Audience: ${ai.targetAudience}
-Brand Voice: ${ai.brandVoice}
---------------------------------
-Instagram Bio: ${ai.instagramBio}
-Mood Board: ${ai.moodBoard}
-Competitors: ${ai.competitors}
---------------------------------
-Generated by AI Brand Studio 🐐
-===============================`;
+            const info = `
+╔═══════════════════════════════════════╗
+║          BRAND IDENTITY KIT           ║
+╚═══════════════════════════════════════╝
+
+Brand: ${brandName}
+Industry: ${industryInput.value}
+Style: ${styleSelect.value}
+Color: ${colorSelect.value}
+
+TAGLINE: "${ai.tagline}"
+
+LOGO CONCEPT: ${ai.logoConcept}
+
+COLORS:
+Primary:   ${ai.primaryColor}
+Secondary: ${ai.secondaryColor}
+Accent:    ${ai.accentColor}
+
+FONTS:
+Primary:   ${ai.primaryFont}
+Secondary: ${ai.secondaryFont}
+
+STORY: ${ai.brandStory}
+
+TARGET AUDIENCE: ${ai.targetAudience}
+
+INSTAGRAM BIO: ${ai.instagramBio}
+
+BRAND VOICE: ${ai.brandVoice}
+
+MOOD BOARD: ${ai.moodBoard}
+
+COMPETITORS: ${ai.competitors}
+
+Generated by AI Brand Studio ✨`;
             
-            navigator.clipboard.writeText(brandInfo);
-            copyBtn.innerHTML = "✅ Copied!";
-            setTimeout(() => copyBtn.innerHTML = "📋 Copy Brand Identity", 2000);
+            navigator.clipboard.writeText(info).then(() => {
+                copyBtn.innerHTML = "✅ Copied!";
+                setTimeout(() => copyBtn.innerHTML = "📋 Copy Brand Identity", 2000);
+            });
         };
     }
 
+    // EXPORT BUTTON
     const exportBtn = document.querySelector(".export-btn");
     if (exportBtn) {
         exportBtn.onclick = () => {
             const content = `
-🐐 GOATED BRAND IDENTITY KIT
+BRAND IDENTITY KIT
 ===============================
-Brand Name: ${brandName.value}
-Industry: ${industry.value}
-Style: ${style.value}
-Color: ${color.value}
---------------------------------
-Tagline: ${ai.tagline}
-Logo Concept: ${ai.logoConcept}
---------------------------------
-Primary Color: ${ai.primaryColor}
-Secondary Color: ${ai.secondaryColor}
-Accent Color: ${ai.accentColor}
---------------------------------
-Primary Font: ${ai.primaryFont}
-Secondary Font: ${ai.secondaryFont}
---------------------------------
-Brand Story: ${ai.brandStory}
-Target Audience: ${ai.targetAudience}
-Brand Voice: ${ai.brandVoice}
---------------------------------
-Instagram Bio: ${ai.instagramBio}
-Mood Board: ${ai.moodBoard}
-Competitors: ${ai.competitors}
---------------------------------
-Generated by AI Brand Studio 🐐
-===============================`;
+Brand Name: ${brandName}
+Industry: ${industryInput.value}
+Style: ${styleSelect.value}
+Color: ${colorSelect.value}
+
+--- TAGLINE ---
+"${ai.tagline}"
+
+--- LOGO CONCEPT ---
+${ai.logoConcept}
+
+--- COLOR PALETTE ---
+Primary:   ${ai.primaryColor}
+Secondary: ${ai.secondaryColor}
+Accent:    ${ai.accentColor}
+
+--- TYPOGRAPHY ---
+Primary:   ${ai.primaryFont}
+Secondary: ${ai.secondaryFont}
+
+--- BRAND STORY ---
+${ai.brandStory}
+
+--- TARGET AUDIENCE ---
+${ai.targetAudience}
+
+--- INSTAGRAM BIO ---
+${ai.instagramBio}
+
+--- BRAND VOICE ---
+${ai.brandVoice}
+
+--- MOOD BOARD ---
+${ai.moodBoard}
+
+--- COMPETITOR ANALYSIS ---
+${ai.competitors}
+
+===============================
+Generated by AI Brand Studio ✨`;
 
             const blob = new Blob([content], { type: "text/plain" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${brandName.value}-GOATED-Brand-Kit.txt`;
+            a.download = `${brandName}-Brand-Kit.txt`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
+            
+            exportBtn.innerHTML = "✅ Exported!";
+            setTimeout(() => exportBtn.innerHTML = "📄 Export (.txt)", 2000);
         };
     }
 
+    // ✅ REIMAGINE BUTTON - FIXED
     const reimagineBtn = document.getElementById("reimagineBtn");
     if (reimagineBtn) {
         const newBtn = reimagineBtn.cloneNode(true);
@@ -1860,42 +573,67 @@ Generated by AI Brand Studio 🐐
         newBtn.onclick = function() {
             const btn = this;
             const img = document.getElementById("generatedLogo");
+            const canvasEl = document.getElementById("canvasFallbackLogo");
             const download = document.getElementById("downloadLogo");
-            
-            console.log("🔄 Reimagine clicked!");
             
             btn.disabled = true;
             btn.innerHTML = `<span class="refresh-icon">🧠</span><span>Generating...</span>`;
+
+            const brandNameVal = brandNameInput.value || 'Brand';
+            const colorHex = currentBrandData?.primaryColor || '#6366F1';
             
-            // ✅ Canvas with 50 styles - ALWAYS DIFFERENT!
-            const newLogo = generateGoatedLogo(
-                brandName.value,
-                currentBrandData?.primaryColor || '#667eea',
-                currentBrandData?.secondaryColor || '#764ba2',
-                currentBrandData?.accentColor || '#ff6b6b'
-            );
-            
+            // Generate NEW Canvas logo (always works)
+            const { dataUrl: newCanvasUrl, usedStyle: newStyle } = renderCanvasLogoToDOM(brandNameVal, styleSelect.value, colorHex);
+
+            // Generate NEW Pollinations URL
+            const newPollinationsUrl = generateLogoUrl(brandNameVal, styleSelect.value);
+
             if (img) {
-                img.src = newLogo;
-                img.style.opacity = "1";
-                if (download) {
-                    download.href = newLogo;
-                }
-                console.log("✅ New logo generated!");
+                img.src = newPollinationsUrl;
+                img.style.display = 'block';
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    if (canvasEl) {
+                        const ctx = canvasEl.getContext('2d');
+                        const canvasImg = new Image();
+                        canvasImg.onload = function() {
+                            canvasEl.width = 512;
+                            canvasEl.height = 512;
+                            ctx.drawImage(canvasImg, 0, 0);
+                            canvasEl.style.display = 'block';
+                        };
+                        canvasImg.src = newCanvasUrl;
+                    }
+                };
+                img.onload = function() {
+                    if (canvasEl) canvasEl.style.display = 'none';
+                };
             }
-            
+
+            // Update style label
+            const styleLabel = document.querySelector('.logo-container p');
+            if (styleLabel) {
+                styleLabel.textContent = `🎨 Style: ${newStyle}`;
+            }
+
+            // Update download link
+            if (download) {
+                download.href = newCanvasUrl;
+            }
+
             btn.innerHTML = `<span class="refresh-icon">↻</span><span>Reimagine Logo</span>`;
             btn.disabled = false;
         };
     }
 }
 
-// ============================================
+// ============================================================
 // ✅ HISTORY
-// ============================================
+// ============================================================
 
 function saveHistory(brand) {
     let history = JSON.parse(localStorage.getItem("brands")) || [];
+    history = history.filter(item => item.brandName !== brand.brandName);
     history.unshift(brand);
     if (history.length > 5) history.pop();
     localStorage.setItem("brands", JSON.stringify(history));
@@ -1904,40 +642,62 @@ function saveHistory(brand) {
 
 function loadHistory() {
     const history = JSON.parse(localStorage.getItem("brands")) || [];
+    if (!historyContainer) return;
+    
     if (history.length === 0) {
-        historyContainer.innerHTML = "<p>No brands generated yet.</p>";
+        historyContainer.innerHTML = `
+            <h2>🕒 Previous Brands</h2>
+            <p style="color:#666;margin-top:10px;">No brands generated yet.</p>`;
         return;
     }
-    historyContainer.innerHTML = "";
+
+    let html = `<h2>🕒 Previous Brands</h2>`;
     history.forEach((item, index) => {
-        historyContainer.innerHTML += `
-<div class="history-card" data-index="${index}" style="background:rgba(255,255,255,0.05);padding:15px 20px;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.05);">
-    <h3 style="color:#e6f1ff;margin:0;">${item.brandName}</h3>
-    <p style="color:#a8b2d1;margin:5px 0 0;">${item.tagline}</p>
-</div>`;
+        html += `
+            <div class="history-card" data-index="${index}" style="background:rgba(255,255,255,0.05);padding:18px 22px;border-radius:14px;margin-bottom:12px;cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <h3 style="color:#e6f1ff;margin:0;font-size:1.1rem;">${item.brandName}</h3>
+                    <p style="color:#a8b2d1;margin:6px 0 0;font-size:0.9rem;">${item.tagline}</p>
+                </div>
+                <span style="color:#555;font-size:0.8rem;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:20px;">#${index + 1}</span>
+            </div>`;
     });
+    historyContainer.innerHTML = html;
+
     document.querySelectorAll(".history-card").forEach(card => {
         card.onclick = () => {
-            const history = JSON.parse(localStorage.getItem("brands"));
-            alert("🐐 Selected: " + history[card.dataset.index].brandName);
+            const historyData = JSON.parse(localStorage.getItem("brands"));
+            const idx = parseInt(card.dataset.index);
+            const item = historyData[idx];
+            if (item) {
+                brandNameInput.value = item.brandName;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         };
     });
 }
+
 loadHistory();
 
-// ============================================
-// ✅ RANDOM
-// ============================================
+// ============================================================
+// ✅ SURPRISE ME - NO AUTO-GENERATE
+// ============================================================
 
 const randomBtn = document.getElementById("randomBtn");
 const randomBrands = ["NovaTech", "Blade", "PixelForge", "NeonX", "Voltify", "SkyLabs", "ZenCore", "Quantum", "GhostByte", "HyperNova"];
-const randomIndustries = ["Gaming", "Technology", "AI", "Fashion", "Fitness", "Coffee", "Restaurant", "Cyber Security", "Education", "Music"];
-const randomStyles = ["Modern", "Minimal", "Luxury", "Gaming", "Technology", "Corporate", "Vintage", "Elegant", "Mascot"];
-const randomColors = ["AI Choose", "Blue", "Red", "Green", "Purple", "Black", "White", "Gold", "Silver", "Orange", "Pink", "Cyan"];
+const randomIndustries = ["Gaming", "Technology", "AI", "Fashion", "Fitness", "Coffee", "Restaurant", "Music", "Education"];
+const randomStyles = ["Modern", "Minimal", "Luxury", "Gaming", "Technology", "Corporate", "Vintage", "Elegant"];
+const randomColors = ["AI Choose", "Blue", "Red", "Green", "Purple", "Gold", "Silver", "Orange", "Pink"];
 
-randomBtn.onclick = () => {
-    brandName.value = randomBrands[Math.floor(Math.random() * randomBrands.length)];
-    industry.value = randomIndustries[Math.floor(Math.random() * randomIndustries.length)];
-    style.value = randomStyles[Math.floor(Math.random() * randomStyles.length)];
-    color.value = randomColors[Math.floor(Math.random() * randomColors.length)];
-};
+if (randomBtn) {
+    randomBtn.onclick = () => {
+        brandNameInput.value = randomBrands[Math.floor(Math.random() * randomBrands.length)];
+        industryInput.value = randomIndustries[Math.floor(Math.random() * randomIndustries.length)];
+        styleSelect.value = randomStyles[Math.floor(Math.random() * randomStyles.length)];
+        colorSelect.value = randomColors[Math.floor(Math.random() * randomColors.length)];
+        // ✅ NO AUTO-CLICK - user must click Generate
+    };
+}
+
+console.log('✅ AI Brand Studio loaded!');
+console.log('🎨 Canvas fallback ready with', LOGO_STYLES.length, 'styles');
