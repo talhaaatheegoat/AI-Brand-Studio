@@ -9,10 +9,8 @@ app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.static("."));
 
-// ✅ STORE CURRENT BRAND DATA FOR REIMAGINE
 let currentBrandData = null;
 
-// ✅ CHECK API KEY
 let model = null;
 let useAI = false;
 
@@ -28,10 +26,6 @@ if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== 'YOUR_GEMINI_AP
 } else {
     console.log('⚠️ No Gemini API key, using smart fallback');
 }
-
-// ============================================
-// ✅ SMART FALLBACK BRAND GENERATOR
-// ============================================
 
 function generateSmartBrand(brandName, industry, style, color) {
     const colors = {
@@ -102,18 +96,14 @@ function generateSmartBrand(brandName, industry, style, color) {
         primaryFont: fonts[0],
         secondaryFont: fonts[1],
         tagline: tagline,
-        brandStory: `${brandName} is a ${style.toLowerCase()} ${industry} brand that redefines excellence through innovation, quality, and unwavering commitment to customer satisfaction.`,
-        targetAudience: `Forward-thinking professionals, industry innovators, and quality-conscious consumers in the ${industry} sector who value ${style.toLowerCase()} design and exceptional experiences.`,
+        brandStory: `${brandName} is a ${style.toLowerCase()} ${industry} brand that redefines excellence.`,
+        targetAudience: `Professionals in the ${industry} sector.`,
         instagramBio: `✨ ${brandName} | ${style} ${industry} | ${tagline} 🌟`,
-        brandVoice: `${style}, confident, and inspiring. We speak with authority while remaining approachable and human.`,
-        moodBoard: `A ${style.toLowerCase()} color palette with ${primaryColor} as the primary color, complemented by ${colorScheme.secondary} and ${colorScheme.accent}. Clean typography with ${fonts[0]} and ${fonts[1]}.`,
-        competitors: `Other players in the ${industry} space include [Competitor 1], [Competitor 2], and [Competitor 3]. ${brandName} differentiates through ${style.toLowerCase()} design and innovative approach.`
+        brandVoice: `${style}, confident, and inspiring.`,
+        moodBoard: `A ${style.toLowerCase()} color palette with ${primaryColor}.`,
+        competitors: `Other players in the ${industry} space.`
     };
 }
-
-// ============================================
-// ✅ AI-POWERED GENERATION
-// ============================================
 
 async function generateWithAI(brandName, industry, style, color) {
     try {
@@ -156,17 +146,18 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ SIMPLER LOGO GENERATION - JUST WORKS
+// ✅ SIMPLE BUT BALANCED LOGO GENERATION
 // ============================================
 
-async function generateLogo(brandName, industry, style, logoConcept) {
+async function generateLogo(brandName, style, seed = null) {
     try {
-        // ✅ SIMPLE PROMPT - NO COMPLICATED COLOR NAMES
-        const prompt = `${brandName} ${logoConcept || industry} logo, ${style}, minimal, vector, flat, white background`;
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+        // ✅ SIMPLE PROMPT - BRAND + STYLE (NOT TOO COMPLEX)
+        const prompt = `${brandName} ${style} logo`;
+        const seedValue = seed || Math.floor(Math.random() * 10000);
+        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seedValue}`;
         
-        console.log(`🎨 Generating logo...`);
-        console.log(`📸 URL: ${url.substring(0, 100)}...`);
+        console.log(`🎨 Generating: ${prompt}`);
+        console.log(`🎲 Seed: ${seedValue}`);
         
         const response = await axios({
             method: 'get',
@@ -178,21 +169,19 @@ async function generateLogo(brandName, industry, style, logoConcept) {
             }
         });
 
-        if (response.data && response.data.length > 1000) {
-            console.log(`✅ Image generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
+        if (response.data && response.data.length > 500) {
+            console.log(`✅ Logo generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
             return response.data;
         } else {
             throw new Error('Image too small');
         }
     } catch (error) {
-        console.error('❌ Logo generation failed:', error.message);
+        console.error('❌ Error:', error.message);
         
-        // ✅ FALLBACK
+        // ✅ FALLBACK: Brand name only
         try {
-            console.log('🔄 Trying fallback...');
-            const fallbackPrompt = `${brandName} logo simple`;
-            const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}`;
-            
+            console.log('🔄 Trying fallback (brand only)...');
+            const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(brandName)}%20logo`;
             const fallbackResponse = await axios({
                 method: 'get',
                 url: fallbackUrl,
@@ -200,77 +189,7 @@ async function generateLogo(brandName, industry, style, logoConcept) {
                 timeout: 30000
             });
 
-            if (fallbackResponse.data && fallbackResponse.data.length > 1000) {
-                console.log('✅ Fallback image generated!');
-                return fallbackResponse.data;
-            }
-        } catch (e) {
-            console.error('❌ Fallback failed:', e.message);
-        }
-        
-        return null;
-    }
-}
-
-// ============================================
-// ✅ REGENERATE LOGO - DIFFERENT PROMPT EACH TIME
-// ============================================
-
-async function regenerateLogo(brandName, industry, style, logoConcept) {
-    try {
-        // ✅ DIFFERENT PROMPTS FOR VARIETY
-        const prompts = [
-            `${brandName} ${logoConcept || industry} logo, ${style}, minimal, vector, flat`,
-            `${brandName} ${industry} logo, ${style}, creative, modern`,
-            `${brandName} logo, ${style}, professional, elegant`,
-            `${brandName} ${logoConcept || industry} icon, ${style}, bold`,
-            `${brandName} brand mark, ${style}, minimalist`,
-            `${brandName} ${industry} symbol, ${style}, flat, vector`
-        ];
-
-        // ✅ Pick random prompt
-        const randomIndex = Math.floor(Math.random() * prompts.length);
-        const prompt = prompts[randomIndex];
-        const seed = Math.floor(Math.random() * 10000);
-        
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
-        
-        console.log(`🎨 Regenerating with prompt ${randomIndex + 1}/${prompts.length}`);
-        console.log(`🎲 Seed: ${seed}`);
-        
-        const response = await axios({
-            method: 'get',
-            url: url,
-            responseType: 'arraybuffer',
-            timeout: 60000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-
-        if (response.data && response.data.length > 1000) {
-            console.log(`✅ New logo generated! (${(response.data.length / 1024).toFixed(1)} KB)`);
-            return response.data;
-        } else {
-            throw new Error('Image too small');
-        }
-    } catch (error) {
-        console.error('❌ Regenerate failed:', error.message);
-        
-        // ✅ FALLBACK
-        try {
-            console.log('🔄 Trying fallback...');
-            const fallbackPrompt = `${brandName} logo ${style}`;
-            const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fallbackPrompt)}?seed=${Date.now()}`;
-            
-            const fallbackResponse = await axios({
-                method: 'get',
-                url: fallbackUrl,
-                responseType: 'arraybuffer',
-                timeout: 45000
-            });
-
-            if (fallbackResponse.data && fallbackResponse.data.length > 1000) {
+            if (fallbackResponse.data && fallbackResponse.data.length > 500) {
                 console.log('✅ Fallback logo generated!');
                 return fallbackResponse.data;
             }
@@ -296,7 +215,7 @@ app.post("/generate", async (req, res) => {
         currentBrandData = brandData;
         
         console.log('🎨 Generating logo...');
-        const imageBuffer = await generateLogo(brandName, industry, style, brandData.logoConcept);
+        const imageBuffer = await generateLogo(brandName, style);
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
@@ -324,16 +243,18 @@ app.post("/generate", async (req, res) => {
 });
 
 // ============================================
-// ✅ REGENERATE LOGO ENDPOINT
+// ✅ REGENERATE LOGO - DIFFERENT SEED EACH TIME
 // ============================================
 
 app.post("/regenerate-logo", async (req, res) => {
     try {
-        const { brandName, industry, style, logoConcept } = req.body;
+        const { brandName, style } = req.body;
 
         console.log(`🔄 Regenerating logo for: ${brandName}`);
         
-        const imageBuffer = await regenerateLogo(brandName, industry, style, logoConcept);
+        // ✅ DIFFERENT SEED = DIFFERENT LOGO
+        const newSeed = Math.floor(Math.random() * 10000);
+        const imageBuffer = await generateLogo(brandName, style, newSeed);
 
         if (imageBuffer) {
             const base64Image = imageBuffer.toString('base64');
@@ -370,5 +291,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Pollinations ready!\n`);
+    console.log(`🎨 Logo generator ready!\n`);
 });
