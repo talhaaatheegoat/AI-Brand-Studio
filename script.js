@@ -11,148 +11,342 @@ let currentLogoPrompt = "";
 
 loading.style.display = "none";
 
-// ✅ YOUR RAILWAY URL - CHANGE THIS!
 const API_URL = 'https://ai-brand-studio-production.up.railway.app';
 // const API_URL = 'http://localhost:3000';
 
 console.log(`📡 API URL: ${API_URL}`);
 
 // ============================================
-// ✅ GOATED CANVAS LOGO GENERATOR 🔥
+// 🐐 ULTIMATE GOATED LOGO GENERATOR
 // ============================================
 
-function generateCanvasLogo(brandName, primaryColor, secondaryColor, accentColor) {
+function generateGoatedLogo(brandName, primaryColor, secondaryColor, accentColor) {
     const canvas = document.createElement('canvas');
-    canvas.width = 500;
-    canvas.height = 500;
+    canvas.width = 600;
+    canvas.height = 600;
     const ctx = canvas.getContext('2d');
 
-    // 🎨 BACKGROUND - Premium Gradient
-    const grad = ctx.createLinearGradient(0, 0, 500, 500);
+    // 🎨 5 DIFFERENT STYLES - Random each time
+    const styles = [
+        'premium',
+        'modern', 
+        'luxury',
+        'tech',
+        'creative'
+    ];
+    const selectedStyle = styles[Math.floor(Math.random() * styles.length)];
+
+    // 🎨 Background
+    const grad = ctx.createLinearGradient(0, 0, 600, 600);
     grad.addColorStop(0, primaryColor || '#667eea');
-    grad.addColorStop(0.5, secondaryColor || '#764ba2');
-    grad.addColorStop(1, accentColor || '#ff6b6b');
+    grad.addColorStop(0.4, secondaryColor || '#764ba2');
+    grad.addColorStop(0.7, accentColor || '#ff6b6b');
+    grad.addColorStop(1, primaryColor || '#667eea');
     ctx.fillStyle = grad;
-    ctx.roundRect(0, 0, 500, 500, 35);
+    ctx.roundRect(0, 0, 600, 600, 40);
     ctx.fill();
 
-    // ✨ GLOW EFFECT
-    const glow = ctx.createRadialGradient(250, 250, 50, 250, 250, 250);
-    glow.addColorStop(0, 'rgba(255,255,255,0.15)');
-    glow.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+    // ✨ GLOW LAYER
+    const glow = ctx.createRadialGradient(300, 300, 50, 300, 300, 350);
+    glow.addColorStop(0, 'rgba(255,255,255,0.2)');
+    glow.addColorStop(0.3, 'rgba(255,255,255,0.05)');
     glow.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.fillStyle = glow;
-    ctx.roundRect(0, 0, 500, 500, 35);
+    ctx.roundRect(0, 0, 600, 600, 40);
     ctx.fill();
 
-    // 🔷 DECORATIVE CIRCLES
-    ctx.beginPath();
-    ctx.arc(250, 250, 160, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+    // 🎨 DESIGN ELEMENTS (Style-specific)
+    if (selectedStyle === 'premium') {
+        drawPremiumStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    } else if (selectedStyle === 'modern') {
+        drawModernStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    } else if (selectedStyle === 'luxury') {
+        drawLuxuryStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    } else if (selectedStyle === 'tech') {
+        drawTechStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    } else {
+        drawCreativeStyle(ctx, brandName, primaryColor, secondaryColor, accentColor);
+    }
 
-    ctx.beginPath();
-    ctx.arc(250, 250, 120, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(250, 250, 80, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.08)';
-    ctx.fill();
-
-    // ✨ SPARKLES
-    drawSparkle(ctx, 80, 80);
-    drawSparkle(ctx, 420, 80);
-    drawSparkle(ctx, 80, 420);
-    drawSparkle(ctx, 420, 420);
-
-    // 🔥 MAIN LETTER
-    const letter = brandName.charAt(0).toUpperCase();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    
-    ctx.shadowColor = 'rgba(0,0,0,0.3)';
-    ctx.shadowBlur = 30;
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 5;
-    
-    const letterGrad = ctx.createLinearGradient(150, 150, 350, 350);
-    letterGrad.addColorStop(0, '#ffffff');
-    letterGrad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
-    letterGrad.addColorStop(1, 'rgba(255,255,255,0.7)');
-    ctx.fillStyle = letterGrad;
-    ctx.font = 'bold 140px Arial, sans-serif';
-    ctx.fillText(letter, 250, 230);
-
-    // ✨ BRAND NAME
-    ctx.shadowBlur = 10;
+    // 🏷️ BRAND NAME (Bottom)
     ctx.shadowColor = 'rgba(0,0,0,0.2)';
-    ctx.font = 'bold 34px Arial, sans-serif';
+    ctx.shadowBlur = 15;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
     ctx.fillStyle = 'rgba(255,255,255,0.95)';
-    ctx.fillText(brandName, 250, 330);
+    ctx.font = 'bold 42px Arial, sans-serif';
+    ctx.fillText(brandName, 300, 540);
 
     // 📏 DECORATIVE LINE
     ctx.shadowBlur = 0;
-    const lineGrad = ctx.createLinearGradient(150, 370, 350, 370);
+    const lineGrad = ctx.createLinearGradient(180, 555, 420, 555);
     lineGrad.addColorStop(0, 'rgba(255,255,255,0)');
     lineGrad.addColorStop(0.3, 'rgba(255,255,255,0.6)');
     lineGrad.addColorStop(0.7, 'rgba(255,255,255,0.6)');
     lineGrad.addColorStop(1, 'rgba(255,255,255,0)');
     ctx.beginPath();
-    ctx.moveTo(150, 370);
-    ctx.lineTo(350, 370);
+    ctx.moveTo(180, 555);
+    ctx.lineTo(420, 555);
     ctx.strokeStyle = lineGrad;
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // ✨ DOTS
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.beginPath();
-    ctx.arc(140, 370, 4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(360, 370, 4, 0, Math.PI * 2);
-    ctx.fill();
+    // ✨ CORNER ACCENTS
+    drawCornerAccent(ctx, 30, 30, 'top-left', primaryColor);
+    drawCornerAccent(ctx, 570, 30, 'top-right', primaryColor);
+    drawCornerAccent(ctx, 30, 570, 'bottom-left', primaryColor);
+    drawCornerAccent(ctx, 570, 570, 'bottom-right', primaryColor);
 
-    // 🏛️ CORNER ACCENTS
-    drawCornerAccent(ctx, 30, 30, 'top-left');
-    drawCornerAccent(ctx, 470, 30, 'top-right');
-    drawCornerAccent(ctx, 30, 470, 'bottom-left');
-    drawCornerAccent(ctx, 470, 470, 'bottom-right');
+    // 🏷️ STYLE TAG (Bottom right - small)
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.font = '10px Arial';
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(`✦ ${selectedStyle.toUpperCase()}`, 580, 590);
 
     return canvas.toDataURL('image/png');
+}
+
+// 🎨 PREMIUM STYLE
+function drawPremiumStyle(ctx, name, p, s, a) {
+    // Big letter with gold effect
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.4)';
+    ctx.shadowBlur = 40;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 8;
+    
+    // Gold gradient
+    const goldGrad = ctx.createLinearGradient(200, 150, 400, 350);
+    goldGrad.addColorStop(0, '#FFD700');
+    goldGrad.addColorStop(0.3, '#FFF8DC');
+    goldGrad.addColorStop(0.5, '#FFD700');
+    goldGrad.addColorStop(0.7, '#DAA520');
+    goldGrad.addColorStop(1, '#FFD700');
+    ctx.fillStyle = goldGrad;
+    ctx.font = 'bold 180px Arial, sans-serif';
+    ctx.fillText(letter, 300, 280);
+
+    // Inner glow on letter
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = 'rgba(255,215,0,0.3)';
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.fillText(letter, 300, 280);
+}
+
+// 🎨 MODERN STYLE
+function drawModernStyle(ctx, name, p, s, a) {
+    // Geometric shapes
+    ctx.shadowBlur = 0;
+    
+    // Diamond
+    ctx.save();
+    ctx.translate(300, 260);
+    ctx.rotate(45 * Math.PI / 180);
+    ctx.fillStyle = 'rgba(255,255,255,0.1)';
+    ctx.roundRect(-80, -80, 160, 160, 20);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 3;
+    ctx.roundRect(-80, -80, 160, 160, 20);
+    ctx.stroke();
+    ctx.restore();
+
+    // Letter inside
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 30;
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 140px Arial, sans-serif';
+    ctx.fillText(letter, 300, 270);
+
+    // Small circles around
+    for (let i = 0; i < 8; i++) {
+        const angle = (i / 8) * Math.PI * 2;
+        const x = 300 + Math.cos(angle) * 170;
+        const y = 270 + Math.sin(angle) * 170;
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(x, y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fill();
+    }
+}
+
+// 🎨 LUXURY STYLE
+function drawLuxuryStyle(ctx, name, p, s, a) {
+    // Elegant frame
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth = 2;
+    ctx.roundRect(50, 70, 500, 400, 30);
+    ctx.stroke();
+
+    // Double line
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.roundRect(60, 80, 480, 380, 25);
+    ctx.stroke();
+
+    // Letter with serif style
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 25;
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const grad = ctx.createLinearGradient(200, 150, 400, 350);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(1, 'rgba(255,255,255,0.6)');
+    ctx.fillStyle = grad;
+    ctx.font = 'bold 160px "Times New Roman", serif';
+    ctx.fillText(letter, 300, 270);
+
+    // Small diamonds at corners
+    const diamonds = [[70, 90], [530, 90], [70, 450], [530, 450]];
+    diamonds.forEach(([x, y]) => {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(45 * Math.PI / 180);
+        ctx.fillRect(-10, -10, 20, 20);
+        ctx.restore();
+    });
+}
+
+// 🎨 TECH STYLE
+function drawTechStyle(ctx, name, p, s, a) {
+    // Circuit-like patterns
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+    ctx.lineWidth = 2;
+    
+    // Grid lines
+    for (let i = 0; i < 600; i += 40) {
+        ctx.beginPath();
+        ctx.moveTo(i, 0);
+        ctx.lineTo(i, 600);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, i);
+        ctx.lineTo(600, i);
+        ctx.stroke();
+    }
+
+    // Hexagon
+    ctx.save();
+    ctx.translate(300, 270);
+    for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
+        const x = Math.cos(angle) * 120;
+        const y = Math.sin(angle) * 120;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.restore();
+
+    // Letter with tech feel
+    ctx.shadowColor = 'rgba(0,255,255,0.2)';
+    ctx.shadowBlur = 40;
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 140px "Courier New", monospace';
+    ctx.fillText(letter, 300, 270);
+}
+
+// 🎨 CREATIVE STYLE
+function drawCreativeStyle(ctx, name, p, s, a) {
+    // Splash/watercolor effect
+    for (let i = 0; i < 30; i++) {
+        const x = 100 + Math.random() * 400;
+        const y = 80 + Math.random() * 400;
+        const radius = 10 + Math.random() * 40;
+        const alpha = 0.05 + Math.random() * 0.1;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.shadowBlur = 0;
+        ctx.fill();
+    }
+
+    // Letter with creative styling
+    ctx.shadowColor = 'rgba(0,0,0,0.3)';
+    ctx.shadowBlur = 30;
+    const letter = name.charAt(0).toUpperCase();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // Outline
+    ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+    ctx.lineWidth = 8;
+    ctx.font = 'bold 160px Arial, sans-serif';
+    ctx.strokeText(letter, 300, 270);
+    
+    // Fill
+    const grad = ctx.createRadialGradient(250, 200, 20, 300, 270, 150);
+    grad.addColorStop(0, '#ffffff');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0.9)');
+    grad.addColorStop(1, 'rgba(255,255,255,0.6)');
+    ctx.fillStyle = grad;
+    ctx.fillText(letter, 300, 270);
+
+    // Creative dots
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2;
+        const x = 300 + Math.cos(angle) * 190;
+        const y = 270 + Math.sin(angle) * 190;
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.2)';
+        ctx.fill();
+    }
 }
 
 // ✨ SPARKLE
 function drawSparkle(ctx, x, y) {
     ctx.save();
     ctx.translate(x, y);
-    const size = 8;
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    const size = 10;
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
     ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size * 0.3, 0);
-    ctx.lineTo(0, size);
-    ctx.lineTo(-size * 0.3, 0);
+    for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2;
+        const x1 = Math.cos(angle) * size;
+        const y1 = Math.sin(angle) * size;
+        if (i === 0) ctx.moveTo(x1, y1);
+        else ctx.lineTo(x1, y1);
+        const x2 = Math.cos(angle + Math.PI / 8) * size * 0.3;
+        const y2 = Math.sin(angle + Math.PI / 8) * size * 0.3;
+        ctx.lineTo(x2, y2);
+    }
     ctx.closePath();
     ctx.fill();
     ctx.restore();
 }
 
 // 🏛️ CORNER ACCENT
-function drawCornerAccent(ctx, x, y, position) {
+function drawCornerAccent(ctx, x, y, position, color) {
     ctx.save();
     ctx.translate(x, y);
     ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 2;
-    const size = 20;
+    ctx.lineWidth = 3;
+    const size = 25;
+    ctx.shadowBlur = 0;
     ctx.beginPath();
     if (position === 'top-left') {
         ctx.moveTo(0, size);
@@ -244,8 +438,7 @@ generateBtn.addEventListener("click", async () => {
             tagline: ai.tagline
         });
 
-        // ✅ GENERATE LOGO WITH CANVAS
-        const logoDataUrl = generateCanvasLogo(
+        const logoDataUrl = generateGoatedLogo(
             brandName.value,
             ai.primaryColor,
             ai.secondaryColor,
@@ -258,41 +451,42 @@ generateBtn.addEventListener("click", async () => {
         id="generatedLogo" 
         src="${logoDataUrl}"
         alt="Generated Logo"
-        style="max-width:300px;border-radius:20px;box-shadow:0 10px 40px rgba(0,0,0,0.3);display:block;"
+        style="max-width:320px;border-radius:24px;box-shadow:0 20px 60px rgba(0,0,0,0.4);display:block;"
         onload="console.log('✅ Logo loaded!')"
     >
     <br>
-    <button class="new-logo-btn" id="reimagineBtn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:12px 30px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;">
-        <span class="refresh-icon">↻</span>
-        <span>Reimagine Logo</span>
-    </button>
-    <br>
-    <a id="downloadLogo" href="${logoDataUrl}" download="logo.png" target="_blank" style="padding:12px 30px;background:#28a745;color:white;border-radius:30px;text-decoration:none;display:inline-block;font-weight:600;margin-top:10px;">
-        ⬇ Download Logo
-    </a>
+    <div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center;">
+        <button class="new-logo-btn" id="reimagineBtn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(102,126,234,0.3);">
+            <span class="refresh-icon">↻</span>
+            <span>Reimagine Logo</span>
+        </button>
+        <a id="downloadLogo" href="${logoDataUrl}" download="logo.png" target="_blank" style="padding:14px 35px;background:linear-gradient(135deg, #28a745, #20c997);color:white;border-radius:30px;text-decoration:none;display:inline-block;font-weight:600;box-shadow:0 4px 15px rgba(40,167,69,0.3);">
+            ⬇ Download Logo
+        </a>
+    </div>
 </div>`;
 
         result.innerHTML = `
-<div class="result-card fade-in" style="background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:20px;padding:30px;border:1px solid rgba(255,255,255,0.08);">
-    <h2 style="color:#e6f1ff;font-size:2rem;">🖼 Generated Logo</h2>
+<div class="result-card fade-in" style="background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:24px;padding:35px;border:1px solid rgba(255,255,255,0.08);">
+    <h2 style="color:#e6f1ff;font-size:2rem;margin-bottom:20px;">🖼 Generated Logo</h2>
     <div class="logo-container" style="background:rgba(0,0,0,0.2);border-radius:20px;padding:30px;">${logoHTML}</div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎨 Logo Concept</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.logoConcept}</p>
+    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.logoConcept}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🌈 Color Palette</h2>
     <div style="display:flex;gap:15px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:10px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:${ai.primaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;">${ai.primaryColor}</span>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
+            <div style="width:45px;height:45px;border-radius:12px;background:${ai.primaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
+            <span style="color:#a8b2d1;font-weight:500;">${ai.primaryColor}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:10px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:${ai.secondaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;">${ai.secondaryColor}</span>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
+            <div style="width:45px;height:45px;border-radius:12px;background:${ai.secondaryColor};border:2px solid rgba(255,255,255,0.1);"></div>
+            <span style="color:#a8b2d1;font-weight:500;">${ai.secondaryColor}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:10px;">
-            <div style="width:40px;height:40px;border-radius:10px;background:${ai.accentColor};border:2px solid rgba(255,255,255,0.1);"></div>
-            <span style="color:#a8b2d1;">${ai.accentColor}</span>
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);padding:10px 20px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);">
+            <div style="width:45px;height:45px;border-radius:12px;background:${ai.accentColor};border:2px solid rgba(255,255,255,0.1);"></div>
+            <span style="color:#a8b2d1;font-weight:500;">${ai.accentColor}</span>
         </div>
     </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
@@ -301,13 +495,13 @@ generateBtn.addEventListener("click", async () => {
     <p style="color:#a8b2d1;font-size:1.1rem;"><b style="color:#e6f1ff;">Secondary:</b> ${ai.secondaryFont}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">💬 Tagline</h2>
-    <h3 style="color:#ffd700;font-size:1.3rem;font-style:italic;">"${ai.tagline}"</h3>
+    <h3 style="color:#ffd700;font-size:1.4rem;font-style:italic;">"${ai.tagline}"</h3>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📖 Brand Story</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.brandStory}</p>
+    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.brandStory}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎯 Target Audience</h2>
-    <p style="color:#a8b2d1;font-size:1.1rem;">${ai.targetAudience}</p>
+    <p style="color:#a8b2d1;font-size:1.1rem;line-height:1.8;">${ai.targetAudience}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📱 Instagram Bio</h2>
     <p style="color:#a8b2d1;font-size:1.1rem;">${ai.instagramBio}</p>
@@ -320,9 +514,9 @@ generateBtn.addEventListener("click", async () => {
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🏆 Competitor Analysis</h2>
     <p style="color:#a8b2d1;font-size:1.1rem;">${ai.competitors || 'Positioned uniquely in the market with a distinctive style and approach.'}</p>
-    <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:20px;">
-        <button class="copy-btn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:12px 30px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;">📋 Copy Brand Identity</button>
-        <button class="export-btn" style="background:linear-gradient(135deg, #f093fb, #f5576c);color:white;border:none;padding:12px 30px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;">📄 Export Brand Identity</button>
+    <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:25px;">
+        <button class="copy-btn" style="background:linear-gradient(135deg, #667eea, #764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(102,126,234,0.3);">📋 Copy Brand Identity</button>
+        <button class="export-btn" style="background:linear-gradient(135deg, #f093fb, #f5576c);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(245,87,108,0.3);">📄 Export Brand Identity</button>
     </div>
 </div>`;
 
@@ -351,27 +545,33 @@ function setupButtons(ai) {
     if (copyBtn) {
         copyBtn.onclick = () => {
             const brandInfo = `
-BRAND IDENTITY KIT
-=====================
+🐐 GOATED BRAND IDENTITY KIT
+===============================
 Brand: ${brandName.value}
 Industry: ${industry.value}
 Style: ${style.value}
 Color: ${color.value}
+--------------------------------
 Tagline: ${ai.tagline}
 Logo Concept: ${ai.logoConcept}
+--------------------------------
 Primary Color: ${ai.primaryColor}
 Secondary Color: ${ai.secondaryColor}
 Accent Color: ${ai.accentColor}
+--------------------------------
 Primary Font: ${ai.primaryFont}
 Secondary Font: ${ai.secondaryFont}
+--------------------------------
 Brand Story: ${ai.brandStory}
 Target Audience: ${ai.targetAudience}
 Brand Voice: ${ai.brandVoice}
+--------------------------------
 Instagram Bio: ${ai.instagramBio}
 Mood Board: ${ai.moodBoard}
 Competitors: ${ai.competitors}
-=====================
-Generated by AI Brand Studio`;
+--------------------------------
+Generated by AI Brand Studio 🐐
+===============================`;
             
             navigator.clipboard.writeText(brandInfo);
             copyBtn.innerHTML = "✅ Copied!";
@@ -383,7 +583,7 @@ Generated by AI Brand Studio`;
     if (exportBtn) {
         exportBtn.onclick = () => {
             const content = `
-BRAND IDENTITY KIT
+🐐 GOATED BRAND IDENTITY KIT
 ===============================
 Brand Name: ${brandName.value}
 Industry: ${industry.value}
@@ -408,20 +608,19 @@ Instagram Bio: ${ai.instagramBio}
 Mood Board: ${ai.moodBoard}
 Competitors: ${ai.competitors}
 --------------------------------
-Generated by AI Brand Studio
+Generated by AI Brand Studio 🐐
 ===============================`;
 
             const blob = new Blob([content], { type: "text/plain" });
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `${brandName.value}-Brand-Kit.txt`;
+            a.download = `${brandName.value}-GOATED-Brand-Kit.txt`;
             a.click();
             URL.revokeObjectURL(url);
         };
     }
 
-    // ✅ REIMAGINE BUTTON
     const reimagineBtn = document.getElementById("reimagineBtn");
     if (reimagineBtn) {
         const newBtn = reimagineBtn.cloneNode(true);
@@ -437,7 +636,7 @@ Generated by AI Brand Studio
             btn.disabled = true;
             btn.innerHTML = `<span class="refresh-icon">🧠</span><span>Generating...</span>`;
             
-            const newLogo = generateCanvasLogo(
+            const newLogo = generateGoatedLogo(
                 brandName.value,
                 currentBrandData?.primaryColor || '#667eea',
                 currentBrandData?.secondaryColor || '#764ba2',
@@ -480,15 +679,15 @@ function loadHistory() {
     historyContainer.innerHTML = "";
     history.forEach((item, index) => {
         historyContainer.innerHTML += `
-<div class="history-card" data-index="${index}">
-    <h3>${item.brandName}</h3>
-    <p>${item.tagline}</p>
+<div class="history-card" data-index="${index}" style="background:rgba(255,255,255,0.05);padding:15px 20px;border-radius:12px;margin-bottom:10px;cursor:pointer;transition:all 0.3s;border:1px solid rgba(255,255,255,0.05);">
+    <h3 style="color:#e6f1ff;margin:0;">${item.brandName}</h3>
+    <p style="color:#a8b2d1;margin:5px 0 0;">${item.tagline}</p>
 </div>`;
     });
     document.querySelectorAll(".history-card").forEach(card => {
         card.onclick = () => {
             const history = JSON.parse(localStorage.getItem("brands"));
-            alert("Selected: " + history[card.dataset.index].brandName);
+            alert("🐐 Selected: " + history[card.dataset.index].brandName);
         };
     });
 }

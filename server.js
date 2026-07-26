@@ -144,10 +144,6 @@ Color: ${color}
     }
 }
 
-// ============================================
-// ✅ GENERATE ENDPOINT - NO IMAGE API!
-// ============================================
-
 app.post("/generate", async (req, res) => {
     try {
         const { brandName, industry, style, color = "AI Choose" } = req.body;
@@ -157,11 +153,9 @@ app.post("/generate", async (req, res) => {
         const brandData = await generateWithAI(brandName, industry, style, color);
         currentBrandData = brandData;
         
-        // ✅ NO IMAGE - Just send the text data
-        // Frontend will generate the logo using Canvas
         brandData.logo = null;
         brandData.logoUrl = null;
-        console.log('✅ Brand data ready! Logo will be generated client-side.');
+        console.log('✅ Brand data ready!');
 
         res.json({ 
             success: true, 
@@ -177,23 +171,15 @@ app.post("/generate", async (req, res) => {
     }
 });
 
-// ============================================
-// ✅ REGENERATE LOGO - Just returns colors
-// ============================================
-
 app.post("/regenerate-logo", async (req, res) => {
     try {
         const { brandName } = req.body;
-
         console.log(`🔄 Regenerating logo for: ${brandName}`);
-        
-        // ✅ Just send success - frontend will regenerate using Canvas
         res.json({ 
             success: true, 
             logo: null,
             message: "Logo regenerated client-side"
         });
-
     } catch (error) {
         console.error('❌ Error:', error);
         res.status(500).json({ 
@@ -202,10 +188,6 @@ app.post("/regenerate-logo", async (req, res) => {
         });
     }
 });
-
-// ============================================
-// ✅ HEALTH CHECK
-// ============================================
 
 app.get("/health", (req, res) => {
     res.json({ 
@@ -220,5 +202,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Logos will be generated client-side with Canvas!\n`);
+    console.log(`🎨 GOATED Canvas logos ready!\n`);
 });
