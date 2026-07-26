@@ -2,7 +2,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const axios = require("axios");
 
 const app = express();
 app.use(cors());
@@ -146,71 +145,7 @@ Color: ${color}
 }
 
 // ============================================
-// ✅ FETCH IMAGE AND RETURN AS BASE64
-// ============================================
-
-async function fetchImageAsBase64(url) {
-    try {
-        console.log(`📸 Fetching: ${url}`);
-        const response = await axios({
-            method: 'get',
-            url: url,
-            responseType: 'arraybuffer',
-            timeout: 30000,
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-
-        if (response.data && response.data.length > 500) {
-            const base64 = Buffer.from(response.data).toString('base64');
-            return `data:image/png;base64,${base64}`;
-        }
-        return null;
-    } catch (error) {
-        console.error(`❌ Fetch failed: ${error.message}`);
-        return null;
-    }
-}
-
-// ============================================
-// ✅ GENERATE LOGO (RETURNS BASE64)
-// ============================================
-
-async function generateLogoBase64(brandName, style) {
-    try {
-        // ✅ SIMPLE PROMPT
-        const prompt = `${brandName} ${style} logo`;
-        const seed = Math.floor(Math.random() * 10000);
-        const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${seed}`;
-        
-        console.log(`🎨 Generating: ${prompt}`);
-        console.log(`🎲 Seed: ${seed}`);
-        
-        const result = await fetchImageAsBase64(url);
-        if (result) {
-            console.log('✅ Logo generated!');
-            return result;
-        }
-        
-        // ✅ FALLBACK: Brand only
-        console.log('🔄 Trying fallback...');
-        const fallbackUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(brandName)}%20logo`;
-        const fallbackResult = await fetchImageAsBase64(fallbackUrl);
-        if (fallbackResult) {
-            console.log('✅ Fallback logo generated!');
-            return fallbackResult;
-        }
-        
-        return null;
-    } catch (error) {
-        console.error('❌ Error:', error.message);
-        return null;
-    }
-}
-
-// ============================================
-// ✅ MAIN GENERATE ENDPOINT
+// ✅ GENERATE ENDPOINT - NO IMAGE API!
 // ============================================
 
 app.post("/generate", async (req, res) => {
@@ -222,18 +157,11 @@ app.post("/generate", async (req, res) => {
         const brandData = await generateWithAI(brandName, industry, style, color);
         currentBrandData = brandData;
         
-        console.log('🎨 Generating logo...');
-        const logoBase64 = await generateLogoBase64(brandName, style);
-
-        if (logoBase64) {
-            brandData.logo = logoBase64;
-            brandData.logoUrl = logoBase64;
-            console.log('✅ Logo attached!');
-        } else {
-            brandData.logo = null;
-            brandData.logoUrl = null;
-            console.log('⚠️ Logo generation failed');
-        }
+        // ✅ NO IMAGE - Just send the text data
+        // Frontend will generate the logo using Canvas
+        brandData.logo = null;
+        brandData.logoUrl = null;
+        console.log('✅ Brand data ready! Logo will be generated client-side.');
 
         res.json({ 
             success: true, 
@@ -250,22 +178,21 @@ app.post("/generate", async (req, res) => {
 });
 
 // ============================================
-// ✅ REGENERATE LOGO
+// ✅ REGENERATE LOGO - Just returns colors
 // ============================================
 
 app.post("/regenerate-logo", async (req, res) => {
     try {
-        const { brandName, style } = req.body;
+        const { brandName } = req.body;
 
         console.log(`🔄 Regenerating logo for: ${brandName}`);
-        const logoBase64 = await generateLogoBase64(brandName, style);
-
-        if (logoBase64) {
-            console.log('✅ Logo regenerated!');
-            res.json({ success: true, logo: logoBase64 });
-        } else {
-            res.json({ success: false, message: "Failed to generate logo" });
-        }
+        
+        // ✅ Just send success - frontend will regenerate using Canvas
+        res.json({ 
+            success: true, 
+            logo: null,
+            message: "Logo regenerated client-side"
+        });
 
     } catch (error) {
         console.error('❌ Error:', error);
@@ -293,5 +220,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`\n✅ Server running on http://localhost:${PORT}`);
     console.log(`🤖 AI Mode: ${useAI ? 'ENABLED' : 'FALLBACK'}`);
-    console.log(`🎨 Proxy image generator ready!\n`);
+    console.log(`🎨 Logos will be generated client-side with Canvas!\n`);
 });
