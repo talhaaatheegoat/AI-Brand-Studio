@@ -18,43 +18,54 @@ const API_URL = window.location.hostname === 'localhost' || window.location.host
 
 console.log(`📡 API URL: ${API_URL}`);
 
-// ✅ Clean color function
+// ✅ Smart color mapper
 function cleanColor(color) {
-    if (!color) return '#6366F1';
+    if (!color) return '#1A1A1A';
     const hexMatch = color.match(/#[a-fA-F0-9]{6}/);
     if (hexMatch) return hexMatch[0];
-    return color;
+    const colorMap = {
+        'black': '#1A1A1A', 'white': '#FFFFFF', 'gold': '#FFD700',
+        'silver': '#C0C0C0', 'blue': '#0066FF', 'red': '#EF4444',
+        'green': '#10B981', 'purple': '#7B2FBE', 'pink': '#EC4899',
+        'orange': '#FF6B00', 'cyan': '#06B6D4', 'teal': '#0D9488',
+        'rose': '#F43F5E', 'ai choose': '#6366F1'
+    };
+    return colorMap[(color || '').toLowerCase().trim()] || '#1A1A1A';
 }
 
 // ============================================================
-// ✅ 30+ CANVAS LOGO STYLES
+// 🎨 60+ CANVAS LOGO STYLES
 // ============================================================
 
 const LOGO_STYLES = [
-    'Premium', 'Neon', 'Glitch', 'Steampunk', 'Cyberpunk', 'Pop Art',
-    'Tech', 'Minimal', 'Bold', 'Gradient', 'Vintage', 'Retro',
-    'Art Deco', 'Watercolor', 'Sketch', 'Pixel', 'Holographic',
-    'Metal', 'Chrome', 'Glassmorphism', 'Synthwave',
-    'Brutalist', 'Typographic', 'Geometric', 'Abstract', 'Nature',
-    'Cosmic', 'Royal', 'Street Art', 'Graffiti', 'Acid',
-    'Pastel', 'Dark Mode', 'Aurora', 'Fire & Ice'
+    'Premium Gold', 'Luxury', 'Elegant', 'Classic', 'Vintage', 'Retro',
+    'Modern', 'Minimal', 'Sleek', 'Bold', 'Geometric', 'Abstract',
+    'Tech', 'Futuristic', 'Cyberpunk', 'Synthwave', 'Neon', 'Holographic',
+    'Watercolor', 'Sketch', 'Pixel', 'Glitch', 'Pop Art', 'Graffiti',
+    'Organic', 'Nature', 'Earthy', 'Bohemian', 'Zen', 'Tropical',
+    'Steampunk', 'Art Deco', 'Glassmorphism', 'Metal', 'Chrome', 'Aurora',
+    'Cosmic', 'Playful', 'Whimsical', 'Cartoon', 'Kawaii', 'Groovy',
+    'Dark Mode', 'Noir', 'Shadow', 'Midnight', 'Rainbow', 'Pastel',
+    'Tribal', 'Celtic', 'Japanese', 'Scandinavian', 'Mediterranean'
 ];
 
+// 🎨 25+ GRADIENT BACKGROUNDS
 const GRADIENT_BACKGROUNDS = [
-    ['#0f0c29', '#302b63', '#24243e'],
-    ['#000428', '#004e92', '#000428'],
-    ['#1a1a2e', '#16213e', '#0f3460'],
-    ['#0d0d0d', '#1a1a2e', '#16213e'],
-    ['#0f0f0f', '#232323', '#1a1a1a'],
-    ['#0b0b1a', '#1a1a3e', '#2d1b69'],
-    ['#0a0a0a', '#1a1a2e', '#0f3460'],
-    ['#0d0d0d', '#1a1a1a', '#2d2d2d'],
-    ['#000000', '#0d0d0d', '#1a1a1a'],
-    ['#0a0a23', '#1a1a4e', '#141452']
+    ['#0f0c29', '#302b63', '#24243e'], ['#000428', '#004e92', '#000428'],
+    ['#1a1a2e', '#16213e', '#0f3460'], ['#0d0d0d', '#1a1a2e', '#16213e'],
+    ['#0f0f0f', '#232323', '#1a1a1a'], ['#0b0b1a', '#1a1a3e', '#2d1b69'],
+    ['#0a0a0a', '#1a1a2e', '#0f3460'], ['#0d0d0d', '#1a1a1a', '#2d2d2d'],
+    ['#000000', '#0d0d0d', '#1a1a1a'], ['#0a0a23', '#1a1a4e', '#141452'],
+    ['#0c1445', '#1a2a6c', '#3a7bd5'], ['#1a2980', '#26d0ce', '#1a2980'],
+    ['#2d1b69', '#4a2c8a', '#7b2fbe'], ['#1a0a2e', '#2d1b69', '#5b2fbe'],
+    ['#1a0a00', '#3d1a0a', '#5a2a1a'], ['#1a0a0a', '#3d1a1a', '#5a2a2a'],
+    ['#0a1a0a', '#1a3a1a', '#2a5a2a'], ['#0a1a0a', '#1a4a1a', '#2a6a2a'],
+    ['#1a0a0a', '#3a1a1a', '#5a2a2a'], ['#0a0a0a', '#1a1a1a', '#2a2a2a'],
+    ['#000000', '#1a1a1a', '#333333']
 ];
 
 // ============================================================
-// ✅ GENERATE CANVAS LOGO - WITH RANDOM SHAPES
+// 🎨 CANVAS LOGO GENERATOR
 // ============================================================
 
 function generateCanvasLogo(brandName, style, colorHex) {
@@ -62,137 +73,38 @@ function generateCanvasLogo(brandName, style, colorHex) {
     canvas.width = 512;
     canvas.height = 512;
     const ctx = canvas.getContext('2d');
-    const w = canvas.width;
-    const h = canvas.height;
+    const w = canvas.width, h = canvas.height;
 
     const cleanColorHex = cleanColor(colorHex);
-    const styleIndex = Math.floor(Math.random() * LOGO_STYLES.length);
-    const currentStyle = style || LOGO_STYLES[styleIndex];
-    const bgIndex = Math.floor(Math.random() * GRADIENT_BACKGROUNDS.length);
-    const bgColors = GRADIENT_BACKGROUNDS[bgIndex];
+    const currentStyle = style || LOGO_STYLES[Math.floor(Math.random() * LOGO_STYLES.length)];
+    const bgColors = GRADIENT_BACKGROUNDS[Math.floor(Math.random() * GRADIENT_BACKGROUNDS.length)];
     const firstLetter = brandName.trim().charAt(0).toUpperCase() || 'B';
 
-    // BACKGROUND GRADIENT
-    const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, 400);
+    // ─── BACKGROUND ───
+    const bgGrad = ctx.createRadialGradient(w/2, h/2, 50, w/2, h/2, 400);
     bgGrad.addColorStop(0, bgColors[1]);
     bgGrad.addColorStop(0.5, bgColors[0]);
     bgGrad.addColorStop(1, bgColors[2]);
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // AMBIENT GLOW
-    const glowGrad = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, 300);
-    glowGrad.addColorStop(0, cleanColorHex + '20');
+    // ─── GLOW ───
+    const glowGrad = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, 300);
+    glowGrad.addColorStop(0, cleanColorHex + '25');
     glowGrad.addColorStop(1, 'transparent');
     ctx.fillStyle = glowGrad;
     ctx.fillRect(0, 0, w, h);
 
-    // ✅ RANDOM SHAPE VARIETY
-    const shapes = ['circles', 'triangles', 'squares', 'hexagons', 'diamonds'];
-    const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-
-    if (randomShape === 'triangles') {
-        for (let i = 0; i < 10; i++) {
-            const cx = Math.random() * w;
-            const cy = Math.random() * h;
-            const size = 15 + Math.random() * 50;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(Math.random() * Math.PI);
-            ctx.fillStyle = cleanColorHex + '12';
-            ctx.beginPath();
-            ctx.moveTo(0, -size);
-            ctx.lineTo(size, size);
-            ctx.lineTo(-size, size);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-    } else if (randomShape === 'squares') {
-        for (let i = 0; i < 10; i++) {
-            const cx = Math.random() * w;
-            const cy = Math.random() * h;
-            const size = 15 + Math.random() * 40;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(Math.random() * Math.PI);
-            ctx.fillStyle = cleanColorHex + '12';
-            ctx.fillRect(-size/2, -size/2, size, size);
-            ctx.restore();
-        }
-    } else if (randomShape === 'hexagons') {
-        for (let i = 0; i < 8; i++) {
-            const cx = Math.random() * w;
-            const cy = Math.random() * h;
-            const size = 12 + Math.random() * 35;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.fillStyle = cleanColorHex + '12';
-            ctx.beginPath();
-            for (let hx = 0; hx < 6; hx++) {
-                const angle = (hx / 6) * Math.PI * 2;
-                const px = Math.cos(angle) * size;
-                const py = Math.sin(angle) * size;
-                hx === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-            }
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-    } else if (randomShape === 'diamonds') {
-        for (let i = 0; i < 10; i++) {
-            const cx = Math.random() * w;
-            const cy = Math.random() * h;
-            const size = 12 + Math.random() * 25;
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.fillStyle = cleanColorHex + '12';
-            ctx.beginPath();
-            ctx.moveTo(0, -size);
-            ctx.lineTo(size, 0);
-            ctx.lineTo(0, size);
-            ctx.lineTo(-size, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-    } else {
-        // Circles (default)
-        for (let i = 0; i < 8; i++) {
-            const cx = Math.random() * w;
-            const cy = Math.random() * h;
-            const r = 20 + Math.random() * 80;
-            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-            grd.addColorStop(0, cleanColorHex + '15');
-            grd.addColorStop(1, 'transparent');
-            ctx.fillStyle = grd;
-            ctx.beginPath();
-            ctx.arc(cx, cy, r, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
-
-    // DECORATIVE RINGS
+    // ─── DECORATIVE RINGS ───
     for (let i = 0; i < 3; i++) {
         ctx.strokeStyle = cleanColorHex + '30';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.arc(w / 2, h / 2 - 20, 150 + i * 40, 0, Math.PI * 2);
+        ctx.arc(w/2, h/2 - 20, 150 + i * 40, 0, Math.PI * 2);
         ctx.stroke();
     }
 
-    // DECORATIVE DOTS
-    for (let i = 0; i < 20; i++) {
-        const dx = Math.random() * w;
-        const dy = Math.random() * h;
-        const ds = 2 + Math.random() * 4;
-        ctx.fillStyle = cleanColorHex + '60';
-        ctx.beginPath();
-        ctx.arc(dx, dy, ds, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // SPARKLES
+    // ─── SPARKLES ───
     function drawSparkle(x, y, size) {
         ctx.save();
         ctx.translate(x, y);
@@ -201,7 +113,7 @@ function generateCanvasLogo(brandName, style, colorHex) {
         ctx.shadowBlur = 10;
         for (let i = 0; i < 4; i++) {
             ctx.rotate(Math.PI / 4);
-            ctx.fillRect(-size / 2, -size / 8, size, size / 4);
+            ctx.fillRect(-size/2, -size/8, size, size/4);
         }
         ctx.restore();
     }
@@ -210,39 +122,165 @@ function generateCanvasLogo(brandName, style, colorHex) {
     drawSparkle(100, 400, 18);
     drawSparkle(420, 380, 22);
 
-    // MAIN LETTER
+    // ─── MAIN LETTER ───
     const letterSize = 180;
-    const letterX = w / 2;
-    const letterY = h / 2 - 30;
+    const letterX = w/2, letterY = h/2 - 30;
     const brandNameY = letterY + 120;
-
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    const styleLower = currentStyle.toLowerCase();
 
-    // DEFAULT: Modern Gradient Letter
-    ctx.font = `bold ${letterSize}px 'Poppins', Arial, sans-serif`;
-    const defGrad = ctx.createLinearGradient(letterX - 100, letterY - 100, letterX + 100, letterY + 100);
-    defGrad.addColorStop(0, cleanColorHex);
-    defGrad.addColorStop(0.5, '#ffffff');
-    defGrad.addColorStop(1, cleanColorHex);
-    ctx.fillStyle = defGrad;
-    ctx.shadowColor = cleanColorHex;
-    ctx.shadowBlur = 25;
-    ctx.fillText(firstLetter, letterX, letterY);
-    ctx.shadowBlur = 0;
-    ctx.strokeStyle = '#ffffff40';
-    ctx.lineWidth = 1.5;
-    ctx.strokeText(firstLetter, letterX, letterY);
+    // ─── STYLE-SPECIFIC LETTER ───
+    if (styleLower.includes('premium') || styleLower.includes('gold') || styleLower.includes('luxury')) {
+        const goldGrad = ctx.createLinearGradient(letterX - 100, letterY - 100, letterX + 100, letterY + 100);
+        goldGrad.addColorStop(0, '#FFD700');
+        goldGrad.addColorStop(0.3, '#FFF8DC');
+        goldGrad.addColorStop(0.5, '#FFD700');
+        goldGrad.addColorStop(0.7, '#DAA520');
+        goldGrad.addColorStop(1, '#B8860B');
+        ctx.shadowColor = '#FFD700';
+        ctx.shadowBlur = 35;
+        ctx.fillStyle = goldGrad;
+        ctx.font = `bold ${letterSize}px 'Georgia', serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#B8860B';
+        ctx.lineWidth = 2;
+        ctx.strokeText(firstLetter, letterX, letterY);
+    } else if (styleLower.includes('neon') || styleLower.includes('cyberpunk') || styleLower.includes('synthwave')) {
+        const neonColors = ['#00ff88', '#ff00ff', '#00ccff', '#ff6600', '#ff0088', '#88ff00'];
+        const neonColor = neonColors[Math.floor(Math.random() * neonColors.length)];
+        ctx.shadowColor = neonColor;
+        ctx.shadowBlur = 80;
+        ctx.fillStyle = neonColor;
+        ctx.font = `bold ${letterSize}px 'Courier New', monospace`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        ctx.shadowBlur = 40;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(firstLetter, letterX, letterY);
+    } else if (styleLower.includes('glitch')) {
+        ctx.shadowColor = 'rgba(255,0,0,0.3)';
+        ctx.shadowBlur = 30;
+        ctx.fillStyle = '#00ffcc';
+        ctx.font = `bold ${letterSize}px 'Courier New', monospace`;
+        ctx.fillText(firstLetter, letterX - 4, letterY - 4);
+        ctx.shadowColor = 'rgba(0,255,0,0.3)';
+        ctx.fillStyle = '#ff00ff';
+        ctx.fillText(firstLetter, letterX + 4, letterY + 4);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(firstLetter, letterX, letterY);
+        for (let i = 0; i < 10; i++) {
+            ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
+            ctx.fillRect(Math.random() * w, Math.random() * h, 20 + Math.random() * 60, 2);
+        }
+    } else if (styleLower.includes('watercolor')) {
+        for (let i = 0; i < 30; i++) {
+            const x = Math.random() * w, y = Math.random() * h, r = 10 + Math.random() * 50;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${0.02 + Math.random() * 0.05})`;
+            ctx.fill();
+        }
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.font = `bold ${letterSize}px 'Georgia', serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+    } else if (styleLower.includes('steampunk') || styleLower.includes('vintage') || styleLower.includes('retro')) {
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(255,215,0,0.1)';
+        ctx.lineWidth = 2;
+        ctx.roundRect(40, 40, w - 80, h - 80, 30);
+        ctx.stroke();
+        const grad = ctx.createLinearGradient(letterX - 100, letterY - 100, letterX + 100, letterY + 100);
+        grad.addColorStop(0, '#D4A547');
+        grad.addColorStop(0.5, '#F5D6A0');
+        grad.addColorStop(1, '#B8860B');
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 25;
+        ctx.fillStyle = grad;
+        ctx.font = `bold ${letterSize}px 'Georgia', serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const x = letterX + Math.cos(angle) * 160;
+            const y = letterY + Math.sin(angle) * 160;
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255,215,0,0.08)';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+    } else if (styleLower.includes('pop art')) {
+        const popColors = ['#FF0055', '#FFDD00', '#00FFDD', '#FF8800'];
+        const c1 = popColors[Math.floor(Math.random() * popColors.length)];
+        const c2 = popColors[Math.floor(Math.random() * popColors.length)];
+        ctx.shadowBlur = 0;
+        for (let i = 0; i < 8; i++) {
+            const offsetX = (Math.random() - 0.5) * 12;
+            const offsetY = (Math.random() - 0.5) * 12;
+            ctx.fillStyle = i % 2 === 0 ? c1 : c2;
+            ctx.globalAlpha = 0.2 + i * 0.05;
+            ctx.font = `bold ${letterSize + i * 2}px Arial, sans-serif`;
+            ctx.fillText(firstLetter, letterX + offsetX, letterY + offsetY);
+        }
+        ctx.globalAlpha = 1;
+        ctx.shadowColor = 'rgba(0,0,0,0.3)';
+        ctx.shadowBlur = 20;
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${letterSize}px Arial, sans-serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+        ctx.lineWidth = 3;
+        ctx.strokeText(firstLetter, letterX, letterY);
+    } else if (styleLower.includes('cosmic') || styleLower.includes('aurora')) {
+        const cosGrad = ctx.createRadialGradient(letterX, letterY, 20, letterX, letterY, 150);
+        cosGrad.addColorStop(0, '#ffffff');
+        cosGrad.addColorStop(0.3, '#FFD700');
+        cosGrad.addColorStop(0.6, '#7B2FBE');
+        cosGrad.addColorStop(1, '#1a0533');
+        ctx.fillStyle = cosGrad;
+        ctx.shadowColor = '#7B2FBE';
+        ctx.shadowBlur = 50;
+        ctx.font = `bold ${letterSize}px Arial, sans-serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        for (let i = 0; i < 50; i++) {
+            ctx.fillStyle = '#ffffff' + (50 + Math.random() * 150).toString(16).padStart(2, '0');
+            ctx.beginPath();
+            ctx.arc(Math.random() * w, Math.random() * h, 0.5 + Math.random() * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    } else {
+        // DEFAULT: Modern Gradient
+        const defGrad = ctx.createLinearGradient(letterX - 100, letterY - 100, letterX + 100, letterY + 100);
+        defGrad.addColorStop(0, cleanColorHex);
+        defGrad.addColorStop(0.5, '#ffffff');
+        defGrad.addColorStop(1, cleanColorHex);
+        ctx.shadowColor = cleanColorHex;
+        ctx.shadowBlur = 25;
+        ctx.fillStyle = defGrad;
+        ctx.font = `bold ${letterSize}px 'Poppins', Arial, sans-serif`;
+        ctx.fillText(firstLetter, letterX, letterY);
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffffff40';
+        ctx.lineWidth = 1.5;
+        ctx.strokeText(firstLetter, letterX, letterY);
+    }
 
-    // BRAND NAME
-    ctx.font = `600 ${brandName.length > 8 ? 22 : 26}px 'Poppins', Arial, sans-serif`;
-    ctx.fillStyle = '#ffffff';
+    // ─── BRAND NAME ───
     ctx.shadowColor = '#00000060';
     ctx.shadowBlur = 10;
-    ctx.fillText(brandName.toUpperCase(), letterX, brandNameY);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `600 ${brandName.length > 8 ? 22 : 26}px 'Poppins', Arial, sans-serif`;
+    ctx.fillText(brandName.toUpperCase(), letterX, brandNameY + 20);
 
-    // VIGNETTE
-    const vigGrad = ctx.createRadialGradient(w / 2, h / 2, 200, w / 2, h / 2, 350);
+    // ─── VIGNETTE ───
+    const vigGrad = ctx.createRadialGradient(w/2, h/2, 200, w/2, h/2, 350);
     vigGrad.addColorStop(0, 'transparent');
     vigGrad.addColorStop(1, '#00000060');
     ctx.fillStyle = vigGrad;
@@ -252,52 +290,31 @@ function generateCanvasLogo(brandName, style, colorHex) {
 }
 
 // ============================================================
-// ✅ FORCE DIFFERENT POLLINATIONS LOGO - REIMAGINE
+// ✅ POLLINATIONS URL
 // ============================================================
 
 function generateLogoUrl(brandName, style) {
-    // ✅ 20 different style words
-    const styleWords = [
-        'minimalist', 'modern', 'creative', 'professional', 
-        'elegant', 'bold', 'unique', 'sleek', 'dynamic',
-        'clean', 'vibrant', 'sophisticated', 'edgy', 'refined',
-        'artistic', 'premium', 'luxury', 'fresh', 'timeless'
-    ];
-    
-    // ✅ 10 different extra descriptions
-    const extras = [
-        'with geometric shapes', 'with abstract design', 'with gradient colors',
-        'with clean lines', 'with modern typography', 'with creative elements',
-        'with stylish details', 'with professional look', 'with minimalist aesthetic',
-        'with bold contrasts'
-    ];
-    
-    // ✅ 3 different model options
+    const styleWords = ['minimalist', 'modern', 'creative', 'professional', 'elegant', 'bold', 'unique', 'sleek', 'dynamic', 'clean', 'vibrant', 'sophisticated', 'edgy', 'refined', 'premium', 'luxury'];
+    const extras = ['with geometric shapes', 'with abstract design', 'with gradient colors', 'with clean lines', 'with modern typography', 'with creative elements', 'with stylish details', 'with professional look', 'with minimalist aesthetic'];
     const models = ['flux', 'turbo', 'realistic'];
     
-    // ✅ Pick random values
     const randomStyle = styleWords[Math.floor(Math.random() * styleWords.length)];
     const randomExtra = extras[Math.floor(Math.random() * extras.length)];
     const randomModel = models[Math.floor(Math.random() * models.length)];
     const seed = Math.floor(Math.random() * 100000);
-    const timestamp = Date.now();
-    
-    // ✅ Build unique prompt (ALWAYS DIFFERENT)
     const prompt = `${brandName} ${style} ${randomStyle} logo, ${randomExtra}`;
     const encodedPrompt = encodeURIComponent(prompt);
-    
-    return `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${randomModel}&seed=${seed}&t=${timestamp}`;
+    return `https://image.pollinations.ai/prompt/${encodedPrompt}?model=${randomModel}&seed=${seed}&t=${Date.now()}`;
 }
 
 // ============================================================
-// ✅ RENDER CANVAS LOGO TO DOM
+// ✅ RENDER CANVAS LOGO
 // ============================================================
 
 function renderCanvasLogoToDOM(brandName, style, colorHex) {
     const canvas = generateCanvasLogo(brandName, style, colorHex);
     const dataUrl = canvas.toDataURL('image/png');
-    const styleIndex = Math.floor(Math.random() * LOGO_STYLES.length);
-    const usedStyle = LOGO_STYLES[styleIndex];
+    const usedStyle = LOGO_STYLES[Math.floor(Math.random() * LOGO_STYLES.length)];
     return { dataUrl, usedStyle };
 }
 
@@ -312,6 +329,14 @@ generateBtn.addEventListener("click", async () => {
     }
 
     loading.style.display = "flex";
+    loading.innerHTML = `
+        <div style="text-align:center;padding:40px;">
+            <div style="width:50px;height:50px;border:4px solid #222;border-top-color:#D4AF37;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 20px;"></div>
+            <h3 style="color:#e6f1ff;">🤖 Generating your brand...</h3>
+            <p style="color:#a8b2d1;">Creating professional brand identity...</p>
+        </div>
+    `;
+    
     generateBtn.disabled = true;
     generateBtn.innerHTML = "⏳ Generating...";
     resultSection.innerHTML = "";
@@ -356,31 +381,30 @@ generateBtn.addEventListener("click", async () => {
         const cleanSecondary = cleanColor(ai.secondaryColor);
         const cleanAccent = cleanColor(ai.accentColor);
 
-        // Generate Canvas logo (always works)
         const { dataUrl: canvasLogoUrl, usedStyle } = renderCanvasLogoToDOM(brandName, styleSelect.value, cleanPrimary);
-        
-        // Try Pollinations
         const pollinationsUrl = generateLogoUrl(brandName, styleSelect.value);
         currentLogoUrl = canvasLogoUrl;
 
+        // ─── LOGO HTML ───
         const logoHTML = `
             <div style="display:flex;flex-direction:column;align-items:center;width:100%;">
-                <img 
-                    id="generatedLogo" 
-                    src="${pollinationsUrl}"
-                    alt="Generated Logo"
-                    style="max-width:280px;width:100%;border-radius:16px;box-shadow:0 15px 50px rgba(0,0,0,0.4);display:block;"
-                    onerror="this.style.display='none'; document.getElementById('canvasFallbackLogo').style.display='block';"
-                    onload="document.getElementById('canvasFallbackLogo').style.display='none';"
-                >
-                <canvas 
-                    id="canvasFallbackLogo" 
-                    style="display:none;max-width:280px;width:100%;border-radius:16px;box-shadow:0 15px 50px rgba(0,0,0,0.4);"
-                ></canvas>
+                <div style="position:relative;width:280px;height:280px;border-radius:16px;overflow:hidden;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">
+                    <div id="logoSpinner" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:2;">
+                        <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:#D4AF37;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+                    </div>
+                    <img 
+                        id="generatedLogo" 
+                        src="${pollinationsUrl}"
+                        alt="Generated Logo"
+                        style="width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity 0.5s ease;"
+                        onload="this.style.opacity='1'; document.getElementById('logoSpinner').style.display='none';"
+                        onerror="this.style.display='none'; document.getElementById('logoSpinner').style.display='none'; document.getElementById('canvasFallbackLogo').style.display='block';"
+                    >
+                    <canvas id="canvasFallbackLogo" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:16px;"></canvas>
+                </div>
                 <p style="color:#888;font-size:0.8rem;margin-top:8px;">🎨 Style: ${usedStyle}</p>
                 <button class="new-logo-btn" id="reimagineBtn" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;margin-top:15px;">
-                    <span class="refresh-icon">↻</span>
-                    <span>Reimagine Logo</span>
+                    <span class="refresh-icon">↻</span> <span>Reimagine Logo</span>
                 </button>
                 <br>
                 <a id="downloadLogo" href="${canvasLogoUrl}" download="${brandName}-logo.png" target="_blank" style="padding:14px 35px;background:#28a745;color:white;border-radius:30px;text-decoration:none;display:inline-block;font-weight:600;margin-top:10px;">
@@ -388,6 +412,7 @@ generateBtn.addEventListener("click", async () => {
                 </a>
             </div>`;
 
+        // ─── RESULT HTML (Brand Voice, Mood Board, Competitors REMOVED) ───
         resultSection.innerHTML = `
 <div class="result-card fade-in" style="background:rgba(255,255,255,0.05);backdrop-filter:blur(10px);border-radius:24px;padding:35px;border:1px solid rgba(255,255,255,0.08);">
     <h2 style="color:#e6f1ff;font-size:2rem;margin-bottom:25px;text-align:center;">🖼 ${brandName} Logo</h2>
@@ -395,58 +420,57 @@ generateBtn.addEventListener("click", async () => {
         ${logoHTML}
     </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎨 Logo Concept</h2>
     <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.logoConcept}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🌈 Color Palette</h2>
     <div style="display:flex;gap:15px;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
             <div style="width:48px;height:48px;border-radius:12px;background:${cleanPrimary};border:2px solid rgba(255,255,255,0.15);"></div>
             <span style="color:#c8d0e0;">${cleanPrimary}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
             <div style="width:48px;height:48px;border-radius:12px;background:${cleanSecondary};border:2px solid rgba(255,255,255,0.15);"></div>
             <span style="color:#c8d0e0;">${cleanSecondary}</span>
         </div>
-        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;">
+        <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.05);padding:12px 22px;border-radius:14px;border:1px solid rgba(255,255,255,0.06);">
             <div style="width:48px;height:48px;border-radius:12px;background:${cleanAccent};border:2px solid rgba(255,255,255,0.15);"></div>
             <span style="color:#c8d0e0;">${cleanAccent}</span>
         </div>
     </div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🔤 Fonts</h2>
     <p style="color:#a8b2d1;font-size:1.05rem;"><b style="color:#e6f1ff;">Primary:</b> ${ai.primaryFont}</p>
     <p style="color:#a8b2d1;font-size:1.05rem;"><b style="color:#e6f1ff;">Secondary:</b> ${ai.secondaryFont}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">💬 Tagline</h2>
     <h3 style="color:#FFD700;font-size:1.5rem;font-style:italic;">"${ai.tagline}"</h3>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📖 Brand Story</h2>
     <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.brandStory}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">🎯 Target Audience</h2>
     <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.targetAudience}</p>
     <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
+    
     <h2 style="color:#e6f1ff;font-size:1.5rem;">📱 Instagram Bio</h2>
-    <div style="background:rgba(255,255,255,0.05);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,0.06);">
+    <div style="background:rgba(255,255,255,0.08);border-radius:16px;padding:20px;border:1px solid rgba(255,255,255,0.06);">
         <p style="color:#e6f1ff;font-size:1.05rem;white-space:pre-wrap;">${ai.instagramBio}</p>
     </div>
-    <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
-    <h2 style="color:#e6f1ff;font-size:1.5rem;">💬 Brand Voice</h2>
-    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.brandVoice || 'Professional and inspiring.'}</p>
-    <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
-    <h2 style="color:#e6f1ff;font-size:1.5rem;">🎨 Mood Board</h2>
-    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.moodBoard || 'Cohesive visual identity.'}</p>
-    <hr style="border-color:rgba(255,255,255,0.08);margin:30px 0;">
-    <h2 style="color:#e6f1ff;font-size:1.5rem;">🏆 Competitor Analysis</h2>
-    <p style="color:#a8b2d1;font-size:1.05rem;line-height:1.8;">${ai.competitors || 'Unique market positioning.'}</p>
+    
     <div style="display:flex;gap:15px;flex-wrap:wrap;margin-top:35px;justify-content:center;">
-        <button class="copy-btn" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;">📋 Copy Brand Identity</button>
-        <button class="export-btn" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;">📄 Export (.txt)</button>
+        <button class="copy-btn" style="background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(102,126,234,0.3);">📋 Copy Brand Identity</button>
+        <button class="export-btn" style="background:linear-gradient(135deg,#f093fb,#f5576c);color:white;border:none;padding:14px 35px;border-radius:30px;font-size:1rem;font-weight:600;cursor:pointer;transition:all 0.3s;box-shadow:0 4px 15px rgba(245,87,108,0.3);">📄 Export (.txt)</button>
     </div>
 </div>`;
 
-        // Display Canvas fallback
+        // ─── CANVAS FALLBACK ───
         const canvasEl = document.getElementById('canvasFallbackLogo');
         if (canvasEl) {
             const img = new Image();
@@ -480,7 +504,7 @@ generateBtn.addEventListener("click", async () => {
 // ============================================================
 
 function setupButtons(ai, brandName, canvasLogoUrl, cleanPrimary) {
-    // COPY BUTTON
+    // ─── COPY BUTTON ───
     const copyBtn = document.querySelector(".copy-btn");
     if (copyBtn) {
         copyBtn.onclick = () => {
@@ -489,37 +513,33 @@ function setupButtons(ai, brandName, canvasLogoUrl, cleanPrimary) {
 ║          BRAND IDENTITY KIT           ║
 ╚═══════════════════════════════════════╝
 
-Brand: ${brandName}
-Industry: ${industryInput.value}
-Style: ${styleSelect.value}
-Color: ${colorSelect.value}
+📌 Brand: ${brandName}
+🏭 Industry: ${industryInput.value}
+🎨 Style: ${styleSelect.value}
+🎯 Color: ${colorSelect.value}
 
-TAGLINE: "${ai.tagline}"
+💬 Tagline: "${ai.tagline}"
 
-LOGO CONCEPT: ${ai.logoConcept}
+🎨 Logo Concept: ${ai.logoConcept}
 
-COLORS:
-Primary:   ${ai.primaryColor}
-Secondary: ${ai.secondaryColor}
-Accent:    ${ai.accentColor}
+🌈 Colors:
+  Primary:   ${ai.primaryColor}
+  Secondary: ${ai.secondaryColor}
+  Accent:    ${ai.accentColor}
 
-FONTS:
-Primary:   ${ai.primaryFont}
-Secondary: ${ai.secondaryFont}
+🔤 Fonts:
+  Primary:   ${ai.primaryFont}
+  Secondary: ${ai.secondaryFont}
 
-STORY: ${ai.brandStory}
+📖 Brand Story: ${ai.brandStory}
 
-TARGET AUDIENCE: ${ai.targetAudience}
+🎯 Target Audience: ${ai.targetAudience}
 
-INSTAGRAM BIO: ${ai.instagramBio}
+📱 Instagram Bio: ${ai.instagramBio}
 
-BRAND VOICE: ${ai.brandVoice}
-
-MOOD BOARD: ${ai.moodBoard}
-
-COMPETITORS: ${ai.competitors}
-
-Generated by AI Brand Studio ✨`;
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✨ Generated by AI Brand Studio
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
             
             navigator.clipboard.writeText(info).then(() => {
                 copyBtn.innerHTML = "✅ Copied!";
@@ -528,7 +548,7 @@ Generated by AI Brand Studio ✨`;
         };
     }
 
-    // EXPORT BUTTON
+    // ─── EXPORT BUTTON ───
     const exportBtn = document.querySelector(".export-btn");
     if (exportBtn) {
         exportBtn.onclick = () => {
@@ -564,17 +584,9 @@ ${ai.targetAudience}
 --- INSTAGRAM BIO ---
 ${ai.instagramBio}
 
---- BRAND VOICE ---
-${ai.brandVoice}
-
---- MOOD BOARD ---
-${ai.moodBoard}
-
---- COMPETITOR ANALYSIS ---
-${ai.competitors}
-
 ===============================
-Generated by AI Brand Studio ✨`;
+✨ Generated by AI Brand Studio
+===============================`;
 
             const blob = new Blob([content], { type: "text/plain" });
             const url = URL.createObjectURL(blob);
@@ -591,7 +603,7 @@ Generated by AI Brand Studio ✨`;
         };
     }
 
-    // ✅ REIMAGINE BUTTON - FORCES DIFFERENT LOGO
+    // ─── REIMAGINE BUTTON ───
     const reimagineBtn = document.getElementById("reimagineBtn");
     if (reimagineBtn) {
         const newBtn = reimagineBtn.cloneNode(true);
@@ -607,17 +619,20 @@ Generated by AI Brand Studio ✨`;
             btn.innerHTML = `<span class="refresh-icon">🧠</span><span>Generating...</span>`;
 
             const brandNameVal = brandNameInput.value || 'Brand';
-            const colorHex = currentBrandData?.primaryColor || '#6366F1';
+            const colorHex = currentBrandData?.primaryColor || '#1A1A1A';
             
-            // ✅ FORCE NEW Canvas logo (different style)
             const { dataUrl: newCanvasUrl, usedStyle: newStyle } = renderCanvasLogoToDOM(brandNameVal, styleSelect.value, colorHex);
-
-            // ✅ FORCE NEW Pollinations URL (with different random values)
             const newPollinationsUrl = generateLogoUrl(brandNameVal, styleSelect.value);
 
             if (img) {
                 img.src = newPollinationsUrl;
                 img.style.display = 'block';
+                img.style.opacity = '0';
+                img.onload = function() {
+                    this.style.opacity = '1';
+                    document.getElementById('logoSpinner').style.display = 'none';
+                    if (canvasEl) canvasEl.style.display = 'none';
+                };
                 img.onerror = function() {
                     this.style.display = 'none';
                     if (canvasEl) {
@@ -632,21 +647,11 @@ Generated by AI Brand Studio ✨`;
                         canvasImg.src = newCanvasUrl;
                     }
                 };
-                img.onload = function() {
-                    if (canvasEl) canvasEl.style.display = 'none';
-                };
             }
 
-            // Update style label
             const styleLabel = document.querySelector('.logo-container p');
-            if (styleLabel) {
-                styleLabel.textContent = `🎨 Style: ${newStyle}`;
-            }
-
-            // Update download link
-            if (download) {
-                download.href = newCanvasUrl;
-            }
+            if (styleLabel) styleLabel.textContent = `🎨 Style: ${newStyle}`;
+            if (download) download.href = newCanvasUrl;
 
             btn.innerHTML = `<span class="refresh-icon">↻</span><span>Reimagine Logo</span>`;
             btn.disabled = false;
@@ -707,12 +712,12 @@ function loadHistory() {
 loadHistory();
 
 // ============================================================
-// ✅ SURPRISE ME - NO AUTO-GENERATE
+// ✅ SURPRISE ME
 // ============================================================
 
 const randomBtn = document.getElementById("randomBtn");
-const randomBrands = ["NovaTech", "Blade", "PixelForge", "NeonX", "Voltify", "SkyLabs", "ZenCore", "Quantum", "GhostByte", "HyperNova"];
-const randomIndustries = ["Gaming", "Technology", "AI", "Fashion", "Fitness", "Coffee", "Restaurant", "Music", "Education"];
+const randomBrands = ["NovaTech", "Blade", "PixelForge", "NeonX", "Voltify", "SkyLabs", "ZenCore", "Quantum", "GhostByte", "HyperNova", "Astra", "Vortex", "Eclipse", "Nebula", "Prism"];
+const randomIndustries = ["Gaming", "Technology", "AI", "Fashion", "Fitness", "Coffee", "Restaurant", "Music", "Education", "Healthcare", "Finance", "Travel"];
 const randomStyles = ["Modern", "Minimal", "Luxury", "Gaming", "Technology", "Corporate", "Vintage", "Elegant"];
 const randomColors = ["AI Choose", "Blue", "Red", "Green", "Purple", "Gold", "Silver", "Orange", "Pink"];
 
@@ -722,10 +727,9 @@ if (randomBtn) {
         industryInput.value = randomIndustries[Math.floor(Math.random() * randomIndustries.length)];
         styleSelect.value = randomStyles[Math.floor(Math.random() * randomStyles.length)];
         colorSelect.value = randomColors[Math.floor(Math.random() * randomColors.length)];
-        // ✅ NO AUTO-CLICK - user must click Generate
     };
 }
 
-console.log('✅ AI Brand Studio loaded!');
+console.log('🐐 AI Brand Studio loaded successfully!');
 console.log('🎨 Canvas fallback ready with', LOGO_STYLES.length, 'styles');
-console.log('🔄 Reimagine forces DIFFERENT logo every time!');
+console.log('🔄 Reimagine generates DIFFERENT logos every time!');
