@@ -13,159 +13,120 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-        
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
 
 </head>
 
 <body>
 
-<div class="background">
-    <div class="blob blob1"></div>
-    <div class="blob blob2"></div>
-    <div class="blob blob3"></div>
-</div>
-
-<main class="container">
-
-    <section class="hero">
-
-        <div class="logo">🤖</div>
-
-        <h1>AI Brand Studio</h1>
-
-        <p>Create professional logos, colors, fonts, taglines and complete brand identities using AI.</p>
-
-    </section>
-
-    <section class="card">
-
-        <div class="input-group">
-            <label>Brand Name</label>
-            <input
-                type="text"
-                id="brandName"
-                placeholder="Example: BladeTech">
-        </div>
-
-        <div class="input-group">
-            <label>Industry</label>
-            <input
-                type="text"
-                id="industry"
-                placeholder="Gaming">
-        </div>
-
-        <div class="input-group">
-            <label>Brand Style</label>
-
-            <select id="style">
-
-                <option>Modern</option>
-                <option>Minimal</option>
-                <option>Luxury</option>
-                <option>Gaming</option>
-                <option>Technology</option>
-                <option>Corporate</option>
-                <option>Vintage</option>
-                <option>Elegant</option>
-                <option>Mascot</option>
-
-            </select>
-
-        </div>
-
-        <div class="input-group">
-
-    <label for="color">
-        Preferred Primary Color
-    </label>
-
-    <select id="color">
-
-        <option value="AI Choose">AI Choose</option>
-        <option value="Blue">Blue</option>
-        <option value="Red">Red</option>
-        <option value="Green">Green</option>
-        <option value="Purple">Purple</option>
-        <option value="Black">Black</option>
-        <option value="White">White</option>
-        <option value="Gold">Gold</option>
-        <option value="Silver">Silver</option>
-        <option value="Orange">Orange</option>
-        <option value="Pink">Pink</option>
-        <option value="Cyan">Cyan</option>
-
-    </select>
-
-</div>
-
-        <div class="button-group">
-
-            <button id="generateBtn">
-                ✨ Generate Brand Identity
-            </button>
-
-            <button id="randomBtn" type="button">
-                🎲 Surprise Me
-            </button>
-
-        </div>
-
-    </section>
-
-    <section id="loading" class="loading">
-
-    <div class="spinner"></div>
-
-    <h3 id="loadingTitle">🤖 Gemini is thinking...</h3>
-
-    <p id="loadingText">
-        Creating your professional brand identity...
-    </p>
-
-    <div class="progress-bar">
-        <div class="progress-fill"></div>
+    <div class="background">
+        <div class="blob blob1"></div>
+        <div class="blob blob2"></div>
+        <div class="blob blob3"></div>
+        <div class="blob blob4"></div>
     </div>
 
-</section>
+    <!-- ✅ ONLY ONE CONTAINER – REMOVED THE DUPLICATE -->
+    <main class="container">
 
-    <section id="result" class="result-section fade-in">
-</section>
+        <section class="hero">
 
-    <section id="history">
+            <div class="logo">🤖</div>
 
-        <h2>🕒 Previous Brands</h2>
+            <h1>AI Brand Studio</h1>
 
-    </section>
+            <p>Create professional logos, colors, fonts, taglines and complete brand identities using AI.</p>
 
-    <footer>
+        </section>
 
-        <p>
+        <section class="card">
 
-            Made using
+            <div class="input-group">
+                <label>Brand Name</label>
+                <input type="text" id="brandName" placeholder="Example: BladeTech">
+            </div>
 
-            <strong>Node.js</strong>
+            <div class="input-group">
+                <label>Industry</label>
+                <input type="text" id="industry" placeholder="Gaming">
+            </div>
 
-            •
+            <div class="input-group">
+                <label>Brand Style</label>
+                <select id="style">
+                    <option>Modern</option>
+                    <option>Minimal</option>
+                    <option>Luxury</option>
+                    <option>Gaming</option>
+                    <option>Technology</option>
+                    <option>Corporate</option>
+                    <option>Vintage</option>
+                    <option>Elegant</option>
+                    <option>Mascot</option>
+                </select>
+            </div>
 
-            <strong>Express</strong>
+            <div class="input-group">
+                <label for="color">Preferred Primary Color</label>
+                <select id="color">
+                    <option value="AI Choose">AI Choose</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Red">Red</option>
+                    <option value="Green">Green</option>
+                    <option value="Purple">Purple</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Gold">Gold</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Orange">Orange</option>
+                    <option value="Pink">Pink</option>
+                    <option value="Cyan">Cyan</option>
+                </select>
+            </div>
 
-            •
+            <div class="button-group">
+                <button id="generateBtn">✨ Generate Brand Identity</button>
+                <button id="randomBtn" type="button">🎲 Surprise Me</button>
+            </div>
 
-            <strong>Gemini AI</strong>
+        </section>
 
-            •
+        <section id="loading" class="loading">
 
+            <div class="spinner"></div>
 
-        </p>
+            <h3 id="loadingTitle">🤖 Generating your brand...</h3>
 
-    </footer>
+            <p id="loadingText">Creating your professional brand identity...</p>
 
-</main>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
 
-<script src="script.js"></script>
+        </section>
+
+        <section id="result" class="result-section fade-in">
+        </section>
+
+        <section id="history">
+
+            <h2>🕒 Previous Brands</h2>
+
+        </section>
+
+        <footer>
+
+            <p>
+                Made using <strong>Node.js</strong> • <strong>Express</strong> • <strong>Gemini AI</strong> • <strong>Canvas</strong>
+            </p>
+
+        </footer>
+
+    </main>
+
+    <script src="script.js"></script>
 
 </body>
 

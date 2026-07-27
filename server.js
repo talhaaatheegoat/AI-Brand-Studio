@@ -102,16 +102,10 @@ function generateSmartBrand(brandName, industry, style, color) {
         'Education': 'Students aged 5-55, parents, educators, lifelong learners'
     };
 
-    const targetAudience = audiences[industry] || 
+    const targetAudience = audiences[industry] ||
         `Professionals and consumers in the ${industry || 'brand'} space who value quality and innovation`;
 
-    const brandVoice = `${style}, confident, and inspiring. Communicates with clarity and purpose.`;
-
     const instagramBio = `✨ ${brandName} | ${style} ${industry || 'Brand'}\n📌 ${tagline}\n👇 Join the movement\n#${brandName.replace(/\s/g, '')}`;
-
-    const competitors = `Key competitors in the ${industry || 'brand'} space offer similar products, but ${brandName} differentiates through its ${style.toLowerCase()} approach, superior design, and commitment to innovation.`;
-
-    const moodBoard = `A ${style.toLowerCase()} visual identity featuring ${primaryColor} as the anchor, complemented by ${colorScheme.secondary} and ${colorScheme.accent}. Clean typography with ${fonts[0]} and ${fonts[1]}.`;
 
     const brandStory = `${brandName} was born from a vision to transform the ${industry || 'brand'} landscape. With a ${style.toLowerCase()} approach and unwavering commitment to excellence, ${brandName} creates meaningful experiences that resonate with today's audience. Every touchpoint has been meticulously crafted to tell a compelling story of innovation and quality.`;
 
@@ -125,10 +119,7 @@ function generateSmartBrand(brandName, industry, style, color) {
         tagline: tagline,
         brandStory: brandStory,
         targetAudience: targetAudience,
-        instagramBio: instagramBio,
-        brandVoice: brandVoice,
-        moodBoard: moodBoard,
-        competitors: competitors
+        instagramBio: instagramBio
     };
 }
 
@@ -154,10 +145,7 @@ Color: ${color}
   "tagline": "memorable tagline",
   "brandStory": "compelling brand story",
   "targetAudience": "target audience description",
-  "instagramBio": "Instagram bio with emojis",
-  "brandVoice": "tone of voice description",
-  "moodBoard": "mood board description",
-  "competitors": "competitive analysis"
+  "instagramBio": "Instagram bio with emojis"
 }`;
 
         const result = await model.generateContent(prompt);
